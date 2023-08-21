@@ -66,16 +66,17 @@ namespace FusionLibrary
 
             if (CameraPos != Vector3.Zero && CameraDir != Vector3.Zero)
             {
-                LocationCamera = World.CreateCamera(CameraPos, Vector3.Zero, 75);
+                LocationCamera = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, CameraPos, Vector3.Zero, 75f);
                 LocationCamera.Direction = CameraDir;
             }
             else
             {
-                LocationCamera = World.CreateCamera(Position.GetSingleOffset(Coordinate.Z, 10).GetSingleOffset(Coordinate.Y, 10), Vector3.Zero, 75);
+                LocationCamera = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, Position.GetSingleOffset(Coordinate.Z, 10).GetSingleOffset(Coordinate.Y, 10), Vector3.Zero, 75f);
                 LocationCamera.PointAt(Position);
             }
 
-            World.RenderingCamera = LocationCamera;
+            LocationCamera.IsActive = true;
+            Camera.StartRenderingScriptedCamera();
 
             Function.Call(Hash.LOCK_MINIMAP_POSITION, Position.X, Position.Y);
         }
@@ -86,8 +87,8 @@ namespace FusionLibrary
 
             Function.Call(Hash.UNLOCK_MINIMAP_POSITION);
 
-            World.DestroyAllCameras();
-            World.RenderingCamera = null;
+            Camera.DeleteAllCameras();
+            Camera.StopRenderingScriptedCamera();
         }
     }
 }

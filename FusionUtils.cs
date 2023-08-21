@@ -664,7 +664,7 @@ namespace FusionLibrary
                     position = new Vector3(position.X, position.Y, z);
                     position.RequestCollision();
                     Script.Yield();
-                    position.Z = World.GetGroundHeight(new Vector2(position.X, position.Y));
+                    World.GetGroundHeight(position, out position.Z);
                 }
             } while (position.Z == 0);
 

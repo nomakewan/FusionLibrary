@@ -134,7 +134,7 @@ namespace FusionLibrary
         {
             if (Camera == null || Camera.Exists() == false)
             {
-                Camera = World.CreateCamera(Entity.Position, Entity.Rotation, FieldOfView);
+                Camera = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, Entity.Position, Entity.Rotation, FieldOfView);
 
                 if (!isVehicle)
                 {
@@ -149,7 +149,8 @@ namespace FusionLibrary
 
             if (OldCamera == null || OldCamera.Camera == null || OldCamera.Camera.Exists() == false)
             {
-                World.RenderingCamera = Camera;
+                Camera.IsActive = true;
+                Camera.StartRenderingScriptedCamera();
             }
             else
             {
@@ -158,11 +159,12 @@ namespace FusionLibrary
 
                 if (cameraSwitchType == CameraSwitchType.Animated)
                 {
-                    OldCamera.Camera.InterpTo(Camera, 900, 1, 1);
+                    OldCamera.Camera.InterpTo(Camera, 900);
                 }
                 else
                 {
-                    World.RenderingCamera = Camera;
+                    Camera.IsActive = true;
+                    Camera.StartRenderingScriptedCamera();
                 }
             }
 
@@ -248,7 +250,7 @@ namespace FusionLibrary
 
             Camera.FieldOfView = FieldOfView;
 
-            World.RenderingCamera = null;
+            Camera.StopRenderingScriptedCamera();
         }
 
         internal void Abort()

@@ -113,12 +113,12 @@ namespace FusionLibrary
         /// <returns>The handle of the <see cref="Notification"/> which can be used to hide it using <see cref="Notification.Hide(int)"/>.</returns>
         public void ShowNotification(string entry, bool blinking = false)
         {
-            Notification.Show(GetLocalizedText(entry), blinking);
+            Notification.PostTicker(GetLocalizedText(entry), blinking);
         }
 
         public void ShowNotification(string entry, bool blinking = false, params string[] values)
         {
-            Notification.Show(string.Format(GetLocalizedText(entry), values), blinking);
+            Notification.PostTicker(string.Format(GetLocalizedText(entry), values), blinking);
         }
 
         /// <summary>

@@ -152,7 +152,7 @@ namespace FusionLibrary.Extensions
         /// <returns>Position with Z set to ground height.</returns>
         public static Vector3 SetToGroundHeight(this Vector3 position)
         {
-            position.Z = World.GetGroundHeight(position);
+            World.GetGroundHeight(position, out position.Z);
 
             return position;
         }
@@ -165,7 +165,8 @@ namespace FusionLibrary.Extensions
         /// <returns><paramref name="dst"/> with Z axis offsetted of <paramref name="src"/> Z.</returns>
         public static Vector3 TransferHeight(this Vector3 src, Vector3 dst)
         {
-            dst.Z += src.Z - World.GetGroundHeight(src);
+            World.GetGroundHeight(src, out float temp);
+            dst.Z += src.Z - temp;
 
             return dst;
         }

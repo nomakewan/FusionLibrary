@@ -160,7 +160,7 @@ namespace FusionLibrary
                 case CameraType.Entity:
                     if (CustomCamera == null)
                     {
-                        CustomCamera = World.CreateCamera(CameraOnEntity.GetOffsetPosition(CameraPosition), Vector3.Zero, FieldOfView == -1 ? GameplayCamera.FieldOfView : FieldOfView);
+                        CustomCamera = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, CameraOnEntity.GetOffsetPosition(CameraPosition), Vector3.Zero, FieldOfView == -1 ? GameplayCamera.FieldOfView : FieldOfView);
                     }
 
                     CustomCamera.AttachTo(CameraOnEntity, CameraPosition);
@@ -168,7 +168,7 @@ namespace FusionLibrary
                 case CameraType.Position:
                     if (CustomCamera == null)
                     {
-                        CustomCamera = World.CreateCamera(CameraPosition, Vector3.Zero, FieldOfView == -1 ? GameplayCamera.FieldOfView : FieldOfView);
+                        CustomCamera = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, CameraPosition, Vector3.Zero, FieldOfView == -1 ? GameplayCamera.FieldOfView : FieldOfView);
                     }
                     else
                     {
@@ -194,7 +194,8 @@ namespace FusionLibrary
             }
             else
             {
-                World.RenderingCamera = CustomCamera;
+                CustomCamera.IsActive = true;
+                Camera.StartRenderingScriptedCamera();
             }
 
             //Disable fake shake of the cars.
