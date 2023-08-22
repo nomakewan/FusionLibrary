@@ -658,7 +658,7 @@ namespace FusionLibrary
         /// <returns><see langword="true"/> if FPV is enabled; otherwise <see langword="false"/>.</returns>
         public static bool IsCameraInFirstPerson()
         {
-            return GameplayCamera.FollowPedCameraViewMode == CameraViewMode.FirstPerson && !GameplayCamera.IsLookingBehind && !Function.Call<bool>(Hash.IS_CINEMATIC_CAM_INPUT_ACTIVE);
+            return GameplayCamera.FollowPedCameraViewMode == CameraViewMode.FirstPerson && !Function.Call<bool>(Hash.IS_CINEMATIC_CAM_INPUT_ACTIVE);
         }
 
         public static float Magnitude(Vector3 vector3)
