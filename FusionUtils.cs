@@ -208,7 +208,7 @@ namespace FusionLibrary
         {
             Function.Call(Hash.DELETE_ALL_TRAINS);
 
-            Function.Call(Hash.CLEAR_AREA_OF_COPS, PlayerPed.Position.X, PlayerPed.Position.Y, PlayerPed.Position.Z, 1000f, 0);
+            World.ClearAreaOfCops(PlayerPed.Position, 1000f);
 
             Vehicle[] allVehicles = World.GetAllVehicles();
 
@@ -285,10 +285,10 @@ namespace FusionLibrary
             }
             catch (Exception)
             {
-                Function.Call(Hash.SET_CLOCK_DATE, 1985, 8, 21);
+                Function.Call(Hash.SET_CLOCK_DATE, 25, 9, 1985);
                 Function.Call(Hash.SET_CLOCK_TIME, 8, 0, 0);
 
-                return new DateTime(1985, 9, 21, 8, 0, 0);
+                return new DateTime(1985, 10, 25, 8, 0, 0);
             }
         }
 
@@ -626,25 +626,6 @@ namespace FusionLibrary
         }
 
         /// <summary>
-        /// Gets the position on ground of the given <paramref name="position"/> with <paramref name="verticalOffset"/>.
-        /// </summary>
-        /// <param name="position">Point in the world.</param>
-        /// <param name="verticalOffset">Z offset.</param>
-        /// <returns>Point on ground.</returns>
-        public static Vector3 GetPositionOnGround(Vector3 position, float verticalOffset)
-        {
-            float result = -1;
-
-            unsafe
-            {
-                Function.Call(Hash.GET_GROUND_Z_FOR_3D_COORD, position.X, position.Y, position.Z, &result, false);
-            }
-            position.Z = result + verticalOffset;
-
-            return position;
-        }
-
-        /// <summary>
         /// Gets the position of the waypoint, if any.
         /// </summary>
         /// <returns><see cref="Vector3"/> position of the waypoint. Returns <see cref="Vector3.Zero"/> if waypoint is not present.</returns>
@@ -662,7 +643,7 @@ namespace FusionLibrary
                 for (int z = 0; z < 1000; z += 100)
                 {
                     position = new Vector3(position.X, position.Y, z);
-                    position.RequestCollision();
+                    Streaming.RequestCollisionAt(position);
                     Script.Yield();
                     World.GetGroundHeight(position, out position.Z);
                 }
@@ -677,21 +658,7 @@ namespace FusionLibrary
         /// <returns><see langword="true"/> if FPV is enabled; otherwise <see langword="false"/>.</returns>
         public static bool IsCameraInFirstPerson()
         {
-            return Function.Call<int>(Hash.GET_FOLLOW_PED_CAM_VIEW_MODE) == 4 && !GameplayCamera.IsLookingBehind && !Function.Call<bool>(Hash.IS_CINEMATIC_CAM_INPUT_ACTIVE);
-        }
-
-        public static float RainLevel
-        {
-            get => Function.Call<float>(Hash.GET_RAIN_LEVEL);
-
-            set => Function.Call(Hash.SET_RAIN, value);
-        }
-
-        public static float WindSpeed
-        {
-            get => Function.Call<float>(Hash.GET_WIND_SPEED);
-
-            set => Function.Call(Hash.SET_WIND_SPEED, value);
+            return GameplayCamera.FollowPedCameraViewMode == CameraViewMode.FirstPerson && !GameplayCamera.IsLookingBehind && !Function.Call<bool>(Hash.IS_CINEMATIC_CAM_INPUT_ACTIVE);
         }
 
         public static float Magnitude(Vector3 vector3)
@@ -707,7 +674,8 @@ namespace FusionLibrary
         /// <returns><see langword="true"/> wheel is on rail tracks; otherwise <see langword="false"/>.</returns>
         internal static bool IsWheelOnTracks(Vector3 pos, Vehicle vehicle)
         {
-            float diff = GetPositionOnGround(pos, -0.01f).Z - pos.Z;
+            World.GetGroundHeight(pos, out float temp);
+            float diff = temp - 0.01f - pos.Z;
             RaycastResult ret = World.Raycast(pos, pos.GetSingleOffset(Coordinate.Z, diff), IntersectFlags.Map, vehicle);
 
             // Tracks materials

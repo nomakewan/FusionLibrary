@@ -38,7 +38,7 @@ namespace FusionLibrary
             CurrentDate = FusionUtils.CurrentTime;
 
             Weather = World.Weather;
-            RainLevel = FusionUtils.RainLevel;
+            RainLevel = World.RainLevel;
             PuddleLevel = RainPuddleEditor.Level;
 
             WantedLevel = Game.Player.WantedLevel;
@@ -122,13 +122,13 @@ namespace FusionLibrary
                 {
                     World.TransitionToWeather(Weather, 2);
                     RainPuddleEditor.Level = PuddleLevel;
-                    FusionUtils.RainLevel = RainLevel;
+                    World.RainLevelOverride = RainLevel;
                 }
                 else
                 {
                     World.Weather = Weather;
                     RainPuddleEditor.Level = PuddleLevel;
-                    FusionUtils.RainLevel = RainLevel;
+                    World.RainLevelOverride = RainLevel;
                 }
 
                 if (ResetWanted)

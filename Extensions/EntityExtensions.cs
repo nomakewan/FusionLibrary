@@ -751,7 +751,7 @@ namespace FusionLibrary.Extensions
         {
             position = vehicle.Position.TransferHeight(position);
 
-            position.RequestCollision();
+            Streaming.RequestCollisionAt(position);
             vehicle.Position = position;
         }
 

@@ -128,24 +128,6 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Requests ground collisions at <paramref name="position"/>.
-        /// </summary>
-        /// <param name="position">Position.</param>
-        public static void RequestCollision(this Vector3 position)
-        {
-            Function.Call(Hash.REQUEST_COLLISION_AT_COORD, position.X, position.Y, position.Z);
-        }
-
-        /// <summary>
-        /// Loads game's world at <paramref name="position"/>.
-        /// </summary>
-        /// <param name="position">Position.</param>
-        public static void LoadScene(this Vector3 position)
-        {
-            Function.Call(Hash.NEW_LOAD_SCENE_START, position.X, position.Y, position.Z, 0.0f, 0.0f, 0.0f, 20.0f, 0);
-        }
-
-        /// <summary>
         /// Sets the Z coordinate of <paramref name="position"/> to the ground height.
         /// </summary>
         /// <param name="position">Original position.</param>

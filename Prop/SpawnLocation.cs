@@ -60,7 +60,7 @@ namespace FusionLibrary
 
         public void ShowLocation()
         {
-            Function.Call(Hash.NEW_LOAD_SCENE_START_SPHERE, Position.X, Position.Y, Position.Z, 100, 0);
+            Streaming.StartNewSphereLoadScene(Position, 100f);
 
             LocationCamera?.Delete();
 
