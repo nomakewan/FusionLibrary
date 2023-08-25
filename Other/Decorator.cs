@@ -1,7 +1,5 @@
-﻿using FusionLibrary.Memory;
-using GTA;
+﻿using GTA;
 using GTA.Math;
-using GTA.Native;
 using System;
 using static FusionLibrary.FusionEnums;
 
@@ -33,7 +31,7 @@ namespace FusionLibrary
             Register(dInteractableId, DecorType.Int);
             Register(dGrip, DecorType.Float);
             Register(dTorque, DecorType.Float);
-            Lock();
+            DecoratorInterface.IsLocked = true;
         }
 
         private readonly Entity Entity;
@@ -108,52 +106,52 @@ namespace FusionLibrary
 
         public bool Exists(string propertyName)
         {
-            return Function.Call<bool>(Hash.DECOR_EXIST_ON, Entity, propertyName);
+            return DecoratorInterface.ExistsOn(Entity, propertyName);
         }
 
         public bool Remove(string propertyName)
         {
-            if (IsLocked.HasValue && IsLocked.Value)
+            if (DecoratorInterface.IsLocked)
             {
-                Unlock();
+                DecoratorInterface.IsLocked = false;
             }
 
-            return Function.Call<bool>(Hash.DECOR_REMOVE, Entity, propertyName);
+            return DecoratorInterface.Remove(Entity, propertyName);
         }
 
         public bool SetTime(string propertyName, int timeStamp)
         {
-            return Function.Call<bool>(Hash.DECOR_SET_TIME, Entity, propertyName, timeStamp);
+            return DecoratorInterface.SetTime(Entity, propertyName, timeStamp);
         }
 
         public bool SetInt(string propertyName, int value)
         {
-            return Function.Call<bool>(Hash.DECOR_SET_INT, Entity, propertyName, value);
+            return DecoratorInterface.SetInt(Entity, propertyName, value);
         }
 
         public int GetInt(string propertyName)
         {
-            return Function.Call<int>(Hash.DECOR_GET_INT, Entity, propertyName);
+            return DecoratorInterface.GetInt(Entity, propertyName);
         }
 
         public bool SetFloat(string propertyName, float value)
         {
-            return Function.Call<bool>(Hash.DECOR_SET_FLOAT, Entity, propertyName, value);
+            return DecoratorInterface.SetFloat(Entity, propertyName, value);
         }
 
         public float GetFloat(string propertyName)
         {
-            return Function.Call<float>(Hash.DECOR_GET_FLOAT, Entity, propertyName);
+            return DecoratorInterface.GetFloat(Entity, propertyName);
         }
 
         public bool SetBool(string propertyName, bool value)
         {
-            return Function.Call<bool>(Hash.DECOR_SET_BOOL, Entity, propertyName, value);
+            return DecoratorInterface.SetBool(Entity, propertyName, value);
         }
 
         public bool GetBool(string propertyName)
         {
-            return Function.Call<bool>(Hash.DECOR_GET_BOOL, Entity, propertyName);
+            return DecoratorInterface.GetBool(Entity, propertyName);
         }
 
         public bool SetVector3(string propertyName, Vector3 value)
@@ -218,11 +216,11 @@ namespace FusionLibrary
         public static bool IsRegistered(string propertyName, DecorType decorType)
         {
             if (decorType == DecorType.Vector3)
-                return Function.Call<bool>(Hash.DECOR_IS_REGISTERED_AS_TYPE, propertyName, 1);
+                return DecoratorInterface.IsRegisteredAsType(propertyName, DecoratorType.Float);
             else if (decorType == DecorType.DateTime)
-                return Function.Call<bool>(Hash.DECOR_IS_REGISTERED_AS_TYPE, propertyName, 3);
+                return DecoratorInterface.IsRegisteredAsType(propertyName, DecoratorType.Int);
 
-            return Function.Call<bool>(Hash.DECOR_IS_REGISTERED_AS_TYPE, propertyName, (int)decorType);
+            return DecoratorInterface.IsRegisteredAsType(propertyName, (DecoratorType)decorType);
         }
 
         public static bool Register(string propertyName, DecorType decorType)
@@ -232,9 +230,9 @@ namespace FusionLibrary
                 return true;
             }
 
-            if (IsLocked.HasValue && IsLocked.Value)
+            if (DecoratorInterface.IsLocked)
             {
-                Unlock();
+                DecoratorInterface.IsLocked = false;
             }
 
             if (decorType == DecorType.Vector3)
@@ -252,70 +250,10 @@ namespace FusionLibrary
             }
             else
             {
-                Function.Call(Hash.DECOR_REGISTER, propertyName, (int)decorType);
+                DecoratorInterface.Register(propertyName, (DecoratorType)decorType);
             }
 
             return IsRegistered(propertyName, decorType);
         }
-
-        private static readonly IntPtr lockAddress;
-        private static readonly unsafe byte* g_bIsDecorRegisterLockedPtr;
-
-        public static bool? IsLocked
-        {
-            get
-            {
-                unsafe
-                {
-                    if (lockAddress == IntPtr.Zero)
-                    {
-                        return null;
-                    }
-
-                    return Convert.ToBoolean(*g_bIsDecorRegisterLockedPtr);
-                }
-            }
-        }
-
-        public static bool VehicleExistsWith(string propertyName)
-        {
-            return Function.Call<bool>(Hash.DOES_VEHICLE_EXIST_WITH_DECORATOR, propertyName);
-        }
-
-        static Decorator()
-        {
-            unsafe
-            {
-                lockAddress = (IntPtr)MemoryFunctions.FindPattern("\x40\x53\x48\x83\xEC\x20\x80\x3D\x00\x00\x00\x00\x00\x8B\xDA\x75\x29", "xxxxxxxx????xxxxx");
-
-                if (lockAddress != IntPtr.Zero)
-                {
-                    g_bIsDecorRegisterLockedPtr = (byte*)(lockAddress + *(int*)(lockAddress + 8) + 13);
-                }
-            }
-        }
-
-        public static void Unlock()
-        {
-            unsafe
-            {
-                if (lockAddress != IntPtr.Zero)
-                {
-                    *g_bIsDecorRegisterLockedPtr = 0;
-                }
-            }
-        }
-
-        public static void Lock()
-        {
-            unsafe
-            {
-                if (lockAddress != IntPtr.Zero)
-                {
-                    *g_bIsDecorRegisterLockedPtr = 1;
-                }
-            }
-        }
-
     }
 }
