@@ -4,7 +4,6 @@ using GTA.Math;
 using GTA.Native;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -34,12 +33,15 @@ namespace FusionLibrary
 
         /// <summary>
         /// Gets or sets current <see cref="DateTime"/> of the game's world.
+        /// Useful until SHVDN exposes GTA.DateTime to support years less than 1 and greater than 9999
         /// </summary>
         public static DateTime CurrentTime
         {
             get => GetWorldTime();
 
-            set => SetWorldTime(value);
+#pragma warning disable CS0618 // Type or member is obsolete
+            set => World.CurrentDate = value;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         /// <summary>
@@ -268,6 +270,8 @@ namespace FusionLibrary
 
         /// <summary>
         /// Gets the current game's world <see cref="DateTime"/>.
+        /// Since GTA.DateTime supports years out of range of System.DateTime,
+        /// This has an exception handler to reset the date to October 25, 1985 8:00 AM.
         /// </summary>
         /// <returns></returns>
         private static DateTime GetWorldTime()
@@ -290,16 +294,6 @@ namespace FusionLibrary
 
                 return new DateTime(1985, 10, 25, 8, 0, 0);
             }
-        }
-
-        /// <summary>
-        /// Sets the current game's world <see cref="DateTime"/>.
-        /// </summary>
-        /// <param name="time"></param>
-        private static void SetWorldTime(DateTime time)
-        {
-            Function.Call(Hash.SET_CLOCK_DATE, time.Day, time.Month - 1, time.Year);
-            Function.Call(Hash.SET_CLOCK_TIME, time.Hour, time.Minute, time.Second);
         }
 
         // https://code.google.com/archive/p/slimmath/
@@ -612,17 +606,6 @@ namespace FusionLibrary
         public static float DistanceToSquared2D(Entity entity1, Entity entity2)
         {
             return entity1.Position.DistanceToSquared2D(entity2.Position);
-        }
-
-        /// <summary>
-        /// Draws a line.
-        /// </summary>
-        /// <param name="from">First point.</param>
-        /// <param name="to">Second point.</param>
-        /// <param name="color">Color of the line.</param>
-        public static void DrawLine(Vector3 from, Vector3 to, Color color)
-        {
-            Function.Call(Hash.DRAW_LINE, from.X, from.Y, from.Z, to.X, to.Y, to.Z, color.R, color.G, color.B, color.A);
         }
 
         /// <summary>
