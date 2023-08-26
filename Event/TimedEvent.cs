@@ -1,6 +1,5 @@
 ﻿using GTA;
 using GTA.Math;
-using GTA.Native;
 using System;
 using static FusionLibrary.FusionEnums;
 
@@ -197,9 +196,6 @@ namespace FusionLibrary
                 CustomCamera.IsActive = true;
                 Camera.StartRenderingScriptedCamera();
             }
-
-            //Disable fake shake of the cars.
-            Function.Call(Hash.SET_CAR_HIGH_SPEED_BUMP_SEVERITY_MULTIPLIER, 0);
         }
 
         public bool Run(TimeSpan tCurrentTime, bool tManageCamera = false)

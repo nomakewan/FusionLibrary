@@ -447,15 +447,6 @@ namespace FusionLibrary.Memory
         public static float CalculateReduction(Vehicle vehicle)
         {
             Vector3 vel = vehicle.Velocity;
-            Vector3 pos = vehicle.Position;
-            Vector3 motion = vehicle.GetOffsetPosition(new Vector3(pos.X + vel.X, pos.Y + vel.Y, pos.Z + vel.Z));
-            //if (motion.Y > 3)
-            //{
-            //    mult = (0.15f + ((float)Math.Pow((1.0f / 1.13f), ((float)Math.Abs(motion.Y) - 7.2f))));
-            //    if (mult != 0) { mult = (float)Math.Floor(mult * 1000) / 1000; }
-            //    if (mult > 1) { mult = 1; }
-            //}
-            //mult = (1 + (mult - 1) * 1.0f);
 
             float remap = vel.Length().Remap(0, 30, 0, 0.6f);
             return remap > 0.6f ? 0.6f : remap;

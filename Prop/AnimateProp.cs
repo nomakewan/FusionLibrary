@@ -1,7 +1,6 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
 using GTA.Math;
-using GTA.Native;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -770,22 +769,22 @@ namespace FusionLibrary
             {
                 if (UsePhysicalAttach)
                 {
-                    Function.Call(Hash.ATTACH_ENTITY_TO_ENTITY_PHYSICALLY, Prop.Handle, Entity.Handle, 0, _bone.Index, CurrentOffset.X, CurrentOffset.Y, CurrentOffset.Z, 0, 0, 0, CurrentRotation.X, CurrentRotation.Y, CurrentRotation.Z, 1000000.0f, UseFixedRot, true, true, true, 2);
+                    Prop.AttachToBonePhysically(_bone, CurrentOffset, Vector3.Zero, CurrentRotation, 1000000.0f, UseFixedRot, true, true, true);
                 }
                 else
                 {
-                    Function.Call(Hash.ATTACH_ENTITY_TO_ENTITY, Prop.Handle, Entity.Handle, _bone.Index, CurrentOffset.X, CurrentOffset.Y, CurrentOffset.Z, CurrentRotation.X, CurrentRotation.Y, CurrentRotation.Z, false, false, KeepCollision, false, 0, UseFixedRot);
+                    Prop.AttachTo(_bone, CurrentOffset, CurrentRotation, false, false, KeepCollision, false, EulerRotationOrder.XYZ, UseFixedRot);
                 }
             }
             else
             {
                 if (UsePhysicalAttach)
                 {
-                    Function.Call(Hash.ATTACH_ENTITY_TO_ENTITY_PHYSICALLY, Prop.Handle, Entity.Handle, 0, 0, CurrentOffset.X, CurrentOffset.Y, CurrentOffset.Z, 0, 0, 0, CurrentRotation.X, CurrentRotation.Y, CurrentRotation.Z, 1000000.0f, UseFixedRot, true, true, true, 2);
+                    Prop.AttachToMatrixPhysically(Entity, CurrentOffset, Vector3.Zero, CurrentRotation, 1000000.0f, UseFixedRot, true, true, true);
                 }
                 else
                 {
-                    Function.Call(Hash.ATTACH_ENTITY_TO_ENTITY, Prop.Handle, Entity.Handle, 0, CurrentOffset.X, CurrentOffset.Y, CurrentOffset.Z, CurrentRotation.X, CurrentRotation.Y, CurrentRotation.Z, false, false, KeepCollision, false, 0, UseFixedRot);
+                    Prop.AttachTo(Entity, CurrentOffset, CurrentRotation, false, false, KeepCollision, false, EulerRotationOrder.XYZ, UseFixedRot);
                 }
             }
         }

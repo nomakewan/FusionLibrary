@@ -1,7 +1,6 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
 using GTA.Math;
-using GTA.Native;
 using System.Drawing;
 
 namespace FusionLibrary
@@ -54,7 +53,7 @@ namespace FusionLibrary
         public Color Color { get; set; }
         public bool IsEnabled { get; set; } = true;
 
-        public void Draw(Entity Entity, float shadowId)
+        public void Draw(Entity Entity)
         {
             if (!IsEnabled)
             {
@@ -83,7 +82,7 @@ namespace FusionLibrary
                 dir = Direction;
             }
 
-            Function.Call(Hash.DRAW_SHADOWED_SPOT_LIGHT, pos.X, pos.Y, pos.Z, dir.X, dir.Y, dir.Z, Color.R, Color.G, Color.B, Distance, Brightness, Roundness, Radius, Fadeout, shadowId);
+            World.DrawSpotLightWithShadow(pos, dir, Color, Distance, Brightness, Roundness, Radius, Fadeout);
         }
     }
 }
