@@ -1,7 +1,6 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
 using GTA.Math;
-using GTA.Native;
 using System;
 
 namespace FusionLibrary.Memory
@@ -456,7 +455,7 @@ namespace FusionLibrary.Memory
         {
             float correction = desiredHeading * reduction;
 
-            Vector3 speedVector = Function.Call<Vector3>(Hash.GET_ENTITY_SPEED_VECTOR, vehicle, true);
+            Vector3 speedVector = vehicle.GetSpeedVector(true);
 
             if (Math.Abs(speedVector.Y) > 3.0f)
             {

@@ -1,7 +1,7 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
 using GTA.Math;
-using GTA.Native;
+using GTA.UI;
 using System.Collections.Generic;
 using static FusionLibrary.FusionEnums;
 
@@ -78,14 +78,14 @@ namespace FusionLibrary
             LocationCamera.IsActive = true;
             Camera.StartRenderingScriptedCamera();
 
-            Function.Call(Hash.LOCK_MINIMAP_POSITION, Position.X, Position.Y);
+            Hud.LockRadarPosition(Position);
         }
 
         public static void ResetCamera()
         {
             LocationCamera?.Delete();
 
-            Function.Call(Hash.UNLOCK_MINIMAP_POSITION);
+            Hud.UnlockRadarPosition();
 
             Camera.DeleteAllCameras();
             Camera.StopRenderingScriptedCamera();

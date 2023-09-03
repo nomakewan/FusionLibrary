@@ -143,7 +143,7 @@ namespace FusionLibrary
                 }
                 else
                 {
-                    Camera.AttachToVehicle((Vehicle)Entity, "", PositionOffset, PointAtOffset);
+                    Camera.AttachToVehicleBone(Entity.Bones[""], PositionOffset, PointAtOffset, true);
                 }
             }
 
@@ -222,7 +222,7 @@ namespace FusionLibrary
                 }
                 else
                 {
-                    Camera.AttachToVehicle((Vehicle)Entity, "", CurrentPositionOffset, CurrentPointAtOffset);
+                    Camera.AttachToVehicleBone(Entity.Bones[""], PositionOffset, PointAtOffset, true);
                 }
 
                 Camera.FieldOfView = CurrentFieldOfView;
@@ -245,7 +245,7 @@ namespace FusionLibrary
             }
             else
             {
-                Camera.AttachToVehicle((Vehicle)Entity, "", PositionOffset, PointAtOffset);
+                Camera.AttachToVehicleBone(Entity.Bones[""], PositionOffset, PointAtOffset, true);
             }
 
             Camera.FieldOfView = FieldOfView;

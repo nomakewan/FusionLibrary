@@ -1,6 +1,5 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
-using GTA.Native;
 using System;
 using System.Collections.Generic;
 using static FusionLibrary.FusionEnums;
@@ -81,7 +80,7 @@ namespace FusionLibrary
         public static void Randomize()
         {
             // Set the weather to a random weather
-            Function.Call(Hash.SET_RANDOM_WEATHER_TYPE);
+            World.SetRandomWeather();
 
             // Initial puddle level
             float puddleLevel = 0;

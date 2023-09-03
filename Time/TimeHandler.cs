@@ -54,7 +54,7 @@ namespace FusionLibrary
 
                 if (Game.GameTime >= realSecond)
                 {
-                    Function.Call(Hash.ADD_TO_CLOCK_TIME, 0, 0, 1);
+                    Clock.AddToCurrentTime(0, 0, 1);
                     realSecond = Game.GameTime + 1000;
                 }
             }
@@ -121,9 +121,7 @@ namespace FusionLibrary
                 return;
             }
 
-            Function.Call(Hash.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, vehDensity);
-            Function.Call(Hash.SET_PARKED_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, vehDensity);
-            Function.Call(Hash.SET_RANDOM_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, vehDensity);
+            World.SetAmbientVehicleDensityMultiplierThisFrame(vehDensity);
         }
 
         public static void SetTimer(ScriptTimer scriptTimer, int value)

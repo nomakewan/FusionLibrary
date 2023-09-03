@@ -84,7 +84,7 @@ namespace FusionLibrary
 
                 if (!value)
                 {
-                    Function.Call(Hash.DELETE_ALL_TRAINS);
+                    World.DeleteAllTrains();
                 }
 
                 randomTrains = value;
@@ -174,9 +174,9 @@ namespace FusionLibrary
             Function.Call(Hash.SET_GARBAGE_TRUCKS, state);
 
             if (state)
-                Function.Call(Hash.SET_ROADS_BACK_TO_ORIGINAL, -10000.0f, -10000.0f, -1000.0f, 10000.0f, 10000.0f, 1000.0f);
+                PathFind.SetVehicleNodesBackToOriginal(new Vector3(-10000.0f, -10000.0f, -1000.0f), new Vector3(10000.0f, 10000.0f, 1000.0f));
             else
-                Function.Call(Hash.SET_ROADS_IN_AREA, -10000.0f, -10000.0f, -1000.0f, 10000.0f, 10000.0f, 1000.0f, 0, 1);
+                PathFind.SwitchVehicleNodesInArea(new Vector3(-10000.0f, -10000.0f, -1000.0f), new Vector3(10000.0f, 10000.0f, 1000.0f), false);
 
             if (state)
                 Function.Call(Hash.SET_ALL_VEHICLE_GENERATORS_ACTIVE);
@@ -190,25 +190,11 @@ namespace FusionLibrary
         }
 
         /// <summary>
-        /// Given a <paramref name="position"/> returns the nearest roadside point.
-        /// </summary>
-        /// <param name="position">Instance of a <see cref="Vector3"/>.</param>
-        /// <returns>Nearest roadside point</returns>
-        public static Vector3 GetPointOnRoadSide(Vector3 position)
-        {
-            OutputArgument ret = new OutputArgument();
-
-            Function.Call(Hash.GET_POSITION_BY_SIDE_OF_ROAD, position.X, position.Y, position.Z, -1, ret);
-
-            return ret.GetResult<Vector3>();
-        }
-
-        /// <summary>
         /// Cleares game's world from every ped and vehicles. Except entities with <see cref="Decorator.DoNotDelete"/> == <see langword="true"/>.
         /// </summary>
         public static void ClearWorld()
         {
-            Function.Call(Hash.DELETE_ALL_TRAINS);
+            World.DeleteAllTrains();
 
             World.ClearAreaOfCops(PlayerPed.Position, 1000f);
 

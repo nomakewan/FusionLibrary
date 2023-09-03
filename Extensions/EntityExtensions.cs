@@ -32,23 +32,13 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Returns the <see cref="Vector3"/>'s relative velocity of the given <paramref name="entity"/>.
-        /// </summary>
-        /// <param name="entity">Instance of an <see cref="Entity"/>.</param>
-        /// <returns><see cref="Vector3"/>'s relative velocity of <paramref name="entity"/></returns>
-        public static Vector3 RelativeVelocity(this Entity entity)
-        {
-            return Function.Call<Vector3>(Hash.GET_ENTITY_SPEED_VECTOR, entity, true);
-        }
-
-        /// <summary>
         /// Gets the <paramref name="entity"/> running direction.
         /// </summary>
         /// <param name="entity">Instance of an <see cref="Entity"/>.</param>
         /// <returns><see cref="FusionEnums.RunningDirection"/></returns>
         public static RunningDirection RunningDirection(this Entity entity)
         {
-            float vel = entity.RelativeVelocity().Y;
+            float vel = entity.GetSpeedVector(true).Y;
 
             if (vel > 0)
             {
@@ -301,29 +291,9 @@ namespace FusionLibrary.Extensions
         /// <param name="ped">Instance of a <see cref="Ped"/>.</param>
         /// <param name="radius">Radius of the area to check.</param>
         /// <returns>Instance of the closest <see cref="Vehicle"/>.</returns>
-        public static Vehicle GetClosestVehicle(this Ped ped, float radius = 10)
+        public static Vehicle GetClosestVehicle(this Ped ped, float radius = 5f)
         {
             return World.GetClosestVehicle(ped.Position, radius);
-        }
-
-        /// <summary>
-        /// Returns the <see cref="Vehicle"/> that the <paramref name="ped"/> is currently entering.
-        /// </summary>
-        /// <param name="ped">Instance of a <see cref="Ped"/>.</param>
-        /// <returns>Instance of the <see cref="Vehicle"/>.</returns>
-        public static Vehicle GetEnteringVehicle(this Ped ped)
-        {
-            return Function.Call<Vehicle>(Hash.GET_VEHICLE_PED_IS_ENTERING, ped);
-        }
-
-        /// <summary>
-        /// Returns the <see cref="Vehicle"/> that the <paramref name="ped"/> is currently using.
-        /// </summary>
-        /// <param name="ped">Instance of a <see cref="Ped"/>.</param>
-        /// <returns>Instance of the <see cref="Vehicle"/>.</returns>
-        public static Vehicle GetUsingVehicle(this Ped ped)
-        {
-            return Function.Call<Vehicle>(Hash.GET_VEHICLE_PED_IS_USING, ped);
         }
 
         /// <summary>
@@ -438,7 +408,7 @@ namespace FusionLibrary.Extensions
             newVehicle.PlaceOnGround();
 
             if (newVehicle.Driver.NotNullAndExists())
-                newVehicle.Driver.Task.CruiseWithVehicle(newVehicle, 30, VehicleDrivingFlags.None);
+                newVehicle.Driver?.Task?.CruiseWithVehicle(newVehicle, 30, VehicleDrivingFlags.None);
 
             foreach (Ped ped in newVehicle.Occupants)
                 ped?.MarkAsNoLongerNeeded();
@@ -559,16 +529,6 @@ namespace FusionLibrary.Extensions
         public static bool IsPartiallyInGarage(this Entity entity, GarageDoor garage)
         {
             return Function.Call<bool>(Hash.IS_OBJECT_PARTIALLY_INSIDE_GARAGE, garage, entity, 0);
-        }
-
-        /// <summary>
-        /// Toggles reduced grip for <paramref name="vehicle"/>.
-        /// </summary>
-        /// <param name="vehicle">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="state">State of the toggle.</param>
-        public static void SetReduceGrip(this Vehicle vehicle, bool state)
-        {
-            Function.Call(Hash.SET_VEHICLE_REDUCE_GRIP, vehicle, state);
         }
 
         /// <summary>
@@ -729,7 +689,7 @@ namespace FusionLibrary.Extensions
         /// <returns><see langword="true"/> if speed is almost zero; otherwise <see langword="false"/>.</returns>
         public static bool DecreaseSpeedAndWait(this Vehicle vehicle, float by = 20)
         {
-            Vector3 vel = vehicle.RelativeVelocity();
+            Vector3 vel = vehicle.GetSpeedVector(true);
 
             if (vel.Y >= -2 && vel.Y <= 2)
             {
