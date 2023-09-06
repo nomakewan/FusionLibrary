@@ -238,7 +238,7 @@ namespace FusionLibrary
                 }
                 else
                 {
-                    raycast = World.Raycast(Camera.RenderingScriptedCamera.Position, Camera.RenderingScriptedCamera.Direction, 10, IntersectFlags.Objects, FusionUtils.PlayerPed);
+                    raycast = World.Raycast(ScriptCameraDirector.RenderingCam.Position, ScriptCameraDirector.RenderingCam.Direction, 10, IntersectFlags.Objects, FusionUtils.PlayerPed);
                 }
 
                 if (!raycast.DidHit || !raycast.HitEntity.NotNullAndExists() || raycast.HitEntity.Decorator().InteractableEntity == false)

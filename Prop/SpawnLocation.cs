@@ -76,7 +76,7 @@ namespace FusionLibrary
             }
 
             LocationCamera.IsActive = true;
-            Camera.StartRenderingScriptedCamera();
+            ScriptCameraDirector.StartRendering();
 
             Hud.LockRadarPosition(Position);
         }
@@ -88,7 +88,7 @@ namespace FusionLibrary
             Hud.UnlockRadarPosition();
 
             Camera.DeleteAllCameras();
-            Camera.StopRenderingScriptedCamera();
+            ScriptCameraDirector.StopRendering();
         }
     }
 }

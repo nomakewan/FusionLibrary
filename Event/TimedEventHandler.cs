@@ -122,7 +122,7 @@ namespace FusionLibrary
         {
             if (IsCustomCameraActive)
             {
-                Camera.StopRenderingScriptedCamera();
+                ScriptCameraDirector.StopRendering();
                 Camera.DeleteAllCameras();
                 IsCustomCameraActive = false;
             }

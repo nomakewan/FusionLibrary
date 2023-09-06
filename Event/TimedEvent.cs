@@ -194,7 +194,7 @@ namespace FusionLibrary
             else
             {
                 CustomCamera.IsActive = true;
-                Camera.StartRenderingScriptedCamera();
+                ScriptCameraDirector.StartRendering();
             }
         }
 

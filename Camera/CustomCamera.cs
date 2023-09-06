@@ -150,7 +150,7 @@ namespace FusionLibrary
             if (OldCamera == null || OldCamera.Camera == null || OldCamera.Camera.Exists() == false)
             {
                 Camera.IsActive = true;
-                Camera.StartRenderingScriptedCamera();
+                ScriptCameraDirector.StartRendering();
             }
             else
             {
@@ -164,7 +164,7 @@ namespace FusionLibrary
                 else
                 {
                     Camera.IsActive = true;
-                    Camera.StartRenderingScriptedCamera();
+                    ScriptCameraDirector.StartRendering();
                 }
             }
 
@@ -250,7 +250,7 @@ namespace FusionLibrary
 
             Camera.FieldOfView = FieldOfView;
 
-            Camera.StopRenderingScriptedCamera();
+            ScriptCameraDirector.StopRendering();
         }
 
         internal void Abort()
