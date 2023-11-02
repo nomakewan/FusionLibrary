@@ -264,19 +264,19 @@ namespace FusionLibrary
         {
             try
             {
-                int month = Function.Call<int>(Hash.GET_CLOCK_MONTH) + 1;
-                int year = Function.Call<int>(Hash.GET_CLOCK_YEAR);
-                int day = Function.Call<int>(Hash.GET_CLOCK_DAY_OF_MONTH);
-                int hour = Function.Call<int>(Hash.GET_CLOCK_HOURS);
-                int minute = Function.Call<int>(Hash.GET_CLOCK_MINUTES);
-                int second = Function.Call<int>(Hash.GET_CLOCK_SECONDS);
+                int month = Clock.Month;
+                int year = Clock.Year;
+                int day = Clock.Day;
+                int hour = Clock.Hour;
+                int minute = Clock.Minute;
+                int second = Clock.Second;
 
                 return new DateTime(year, month, day, hour, minute, second);
             }
             catch (Exception)
             {
-                Function.Call(Hash.SET_CLOCK_DATE, 25, 9, 1985);
-                Function.Call(Hash.SET_CLOCK_TIME, 8, 0, 0);
+                Clock.SetDate(25, 10, 1985);
+                Clock.TimeOfDay = new TimeSpan(8, 0, 0);
 
                 return new DateTime(1985, 10, 25, 8, 0, 0);
             }
