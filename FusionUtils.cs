@@ -1,5 +1,6 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
+using GTA.Chrono;
 using GTA.Math;
 using GTA.Native;
 using System;
@@ -30,19 +31,6 @@ namespace FusionLibrary
         public static BinaryFormatter BinaryFormatter { get; } = new BinaryFormatter();
 
         private static int _padShakeStop;
-
-        /// <summary>
-        /// Gets or sets current <see cref="DateTime"/> of the game's world.
-        /// Useful until SHVDN exposes GTA.DateTime to support years less than 1 and greater than 9999
-        /// </summary>
-        public static DateTime CurrentTime
-        {
-            get => GetWorldTime();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            set => World.CurrentDate = value;
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
 
         /// <summary>
         /// Gets the <see cref="Ped"/> of the current <see cref="GTA.Player"/>.
@@ -252,34 +240,6 @@ namespace FusionLibrary
             _padShakeStop = 0;
 
             Function.Call(Hash.STOP_CONTROL_SHAKE);
-        }
-
-        /// <summary>
-        /// Gets the current game's world <see cref="DateTime"/>.
-        /// Since GTA.DateTime supports years out of range of System.DateTime,
-        /// This has an exception handler to reset the date to October 25, 1985 8:00 AM.
-        /// </summary>
-        /// <returns></returns>
-        private static DateTime GetWorldTime()
-        {
-            try
-            {
-                int month = Clock.Month;
-                int year = Clock.Year;
-                int day = Clock.Day;
-                int hour = Clock.Hour;
-                int minute = Clock.Minute;
-                int second = Clock.Second;
-
-                return new DateTime(year, month, day, hour, minute, second);
-            }
-            catch (Exception)
-            {
-                Clock.SetDate(25, 10, 1985);
-                Clock.TimeOfDay = new TimeSpan(8, 0, 0);
-
-                return new DateTime(1985, 10, 25, 8, 0, 0);
-            }
         }
 
         // https://code.google.com/archive/p/slimmath/
@@ -530,13 +490,13 @@ namespace FusionLibrary
         }
 
         /// <summary>
-        /// Parses a <paramref name="raw"/> string trying to retrieve a correct <see cref="DateTime"/> representation.
+        /// Parses a <paramref name="raw"/> string trying to retrieve a correct <see cref="GameClockDateTime"/> representation.
         /// </summary>
         /// <param name="raw">Raw string</param>
-        /// <param name="currentTime">Original <see cref="DateTime"/>.</param>
+        /// <param name="currentTime">Original <see cref="GameClockDateTime"/>.</param>
         /// <param name="inputType">Returns the <see cref="InputType"/>.</param>
-        /// <returns><see cref="DateTime"/> value; otherwise <c>null</c>.</returns>
-        public static DateTime? ParseFromRawString(string raw, DateTime currentTime, out InputType inputType)
+        /// <returns><see cref="GameClockDateTime"/> value; otherwise <c>null</c>.</returns>
+        public static GameClockDateTime? ParseFromRawString(string raw, GameClockDateTime currentTime, out InputType inputType)
         {
             try
             {
@@ -550,7 +510,7 @@ namespace FusionLibrary
 
                     inputType = InputType.Full;
 
-                    return new DateTime(int.Parse(year), int.Parse(month), int.Parse(day), int.Parse(hour), int.Parse(minute), 0);
+                    return new GameClockDateTime(GameClockDate.FromYmd(int.Parse(year), int.Parse(month), int.Parse(day)), GameClockTime.FromHms(int.Parse(hour), int.Parse(minute), 0));
                 }
                 else if (raw.Length == 8)
                 {
@@ -560,7 +520,7 @@ namespace FusionLibrary
 
                     inputType = InputType.Date;
 
-                    return new DateTime(int.Parse(year), int.Parse(month), int.Parse(day), currentTime.Hour, currentTime.Minute, 0);
+                    return new GameClockDateTime(GameClockDate.FromYmd(int.Parse(year), int.Parse(month), int.Parse(day)), GameClockTime.FromHms(currentTime.Hour, currentTime.Minute, 0));
                 }
                 else if (raw.Length == 4)
                 {
@@ -569,7 +529,7 @@ namespace FusionLibrary
 
                     inputType = InputType.Time;
 
-                    return new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, int.Parse(hour), int.Parse(minute), 0);
+                    return new GameClockDateTime(GameClockDate.FromYmd(currentTime.Year, currentTime.Month, currentTime.Day), GameClockTime.FromHms(int.Parse(hour), int.Parse(minute), 0));
                 }
 
                 inputType = InputType.Error;
@@ -581,6 +541,88 @@ namespace FusionLibrary
                 inputType = InputType.Error;
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Parses the <paramref name="input"/> <see cref="GameClockDateTime"/> to convert it into its raw string representation.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockDateTime"/> to convert.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string ParseToRawString(GameClockDateTime input)
+        {
+            return input.Month.ToString("D2") + input.Day.ToString("D2") + input.Year.ToString("D4") + input.Hour.ToString("D2") + input.Minute.ToString("D2");
+        }
+
+        /// <summary>
+        /// Converts a <see cref="GameClockTime"/> into "hh:mm:ss" or "HH:mm:ss" format.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockTime"/> to convert.</param>
+        /// <param name="is12Hour">If <see langword="true"/> the output will be in hh:mm:ss format. Otherwise, it will be in HH:mm:ss format.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string GameClockTimeToString(GameClockTime input, bool is12Hour = true)
+        {
+            if (is12Hour)
+                return input.Hour12.hour.ToString("D2") + ":" + input.Minute.ToString("D2") + ":" + input.Second.ToString("D2");
+            else
+                return input.Hour.ToString("D2") + ":" + input.Minute.ToString("D2") + ":" + input.Second.ToString("D2");
+        }
+
+        /// <summary>
+        /// Converts a <see cref="GameClockTime"/> into "h:mm tt" format.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockTime"/> to convert.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string GameClockTimeToHmt(GameClockTime input)
+        {
+            return input.Hour12.hour.ToString() + ":" + input.Minute.ToString("D2") + (input.Hour12.isPM ? " PM" : " AM");
+        }
+
+        /// <summary>
+        /// Converts a <see cref="GameClockDate"/> into "MMMM d, yyyy" format.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockDate"/> to convert.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string GameClockDateToMdy(GameClockDate input)
+        {
+            switch (input.Month)
+            {
+                case 1:
+                default:
+                    return "January " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 2:
+                    return "February " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 3:
+                    return "March " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 4:
+                    return "April " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 5:
+                    return "May " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 6:
+                    return "June " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 7:
+                    return "July " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 8:
+                    return "August " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 9:
+                    return "September " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 10:
+                    return "October " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 11:
+                    return "November " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 12:
+                    return "December " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+            }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="GameClockDateTime"/> into "MM/dd/yyyy hh:mm tt" format.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockDateTime"/> to convert.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string GameClockDateTimeToMdyhmt(GameClockDateTime input)
+        {
+            return input.Month.ToString("D2") + "/" + input.Day.ToString("D2") + "/" + input.Year.ToString("D4") + " " +
+                input.Hour12.hour.ToString("D2") + ":" + input.Minute.ToString("D2") + (input.Hour12.isPM ? " PM" : " AM");
         }
 
         /// <summary>
@@ -660,7 +702,7 @@ namespace FusionLibrary
             return allowedSurfaces.Contains(ret.MaterialHash);
         }
 
-        public static DateTime RandomDate()
+        public static GameClockDateTime RandomDate()
         {
             Random rand = new Random();
 
@@ -671,7 +713,7 @@ namespace FusionLibrary
             int year = rand.Next(1, 9999);
             int day = rand.Next(1, DateTime.DaysInMonth(year, month));
 
-            return new DateTime(year, month, day, hour, minute, second);
+            return new GameClockDateTime(GameClockDate.FromYmd(year, month, day), GameClockTime.FromHms(hour, minute, second));
         }
 
         public static string RemoveIllegalFileNameChars(string input, string replacement = "")

@@ -1,5 +1,6 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
+using GTA.Chrono;
 using GTA.Native;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using static FusionLibrary.FusionEnums;
 
 namespace FusionLibrary
 {
-    public delegate void OnTimeChanged(DateTime time);
+    public delegate void OnTimeChanged(GameClockDateTime time);
     public delegate void OnDayNightChange();
 
     public class TimeHandler : Script
@@ -54,7 +55,7 @@ namespace FusionLibrary
 
                 if (Game.GameTime >= realSecond)
                 {
-                    Clock.AddToCurrentTime(0, 0, 1);
+                    GameClock.AddToCurrentTime(0, 0, 1);
                     realSecond = Game.GameTime + 1000;
                 }
             }
@@ -79,7 +80,7 @@ namespace FusionLibrary
                 FusionUtils.PlayerVehicle.Decorator().DrivenByPlayer = true;
             }
 
-            bool isNight = FusionUtils.CurrentTime.Hour >= 20 || (FusionUtils.CurrentTime.Hour >= 0 && FusionUtils.CurrentTime.Hour <= 5);
+            bool isNight = GameClock.Now.Hour >= 20 || (GameClock.Now.Hour >= 0 && GameClock.Now.Hour <= 5);
 
             if (isNight != IsNight)
             {
@@ -94,7 +95,7 @@ namespace FusionLibrary
 
             float vehDensity = 1;
 
-            float year = FusionUtils.CurrentTime.Year;
+            float year = GameClock.Now.Year;
 
             if (year > 1900 && year < 1950)
             {
@@ -134,7 +135,7 @@ namespace FusionLibrary
             return Function.Call<int>(scriptTimer == ScriptTimer.A ? Hash.TIMERA : Hash.TIMERB);
         }
 
-        public static void TimeTravelTo(DateTime destinationTime)
+        public static void TimeTravelTo(GameClockDateTime destinationTime)
         {
             new MomentReplica();
 
@@ -142,7 +143,7 @@ namespace FusionLibrary
 
             UsedVehiclesByPlayer.Clear();
 
-            FusionUtils.CurrentTime = destinationTime;
+            GameClock.Now = destinationTime;
 
             MomentReplica.MomentReplicas?.ForEach(x =>
                 {

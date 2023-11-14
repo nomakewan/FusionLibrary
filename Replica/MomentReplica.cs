@@ -1,5 +1,6 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
+using GTA.Chrono;
 using System;
 using System.Collections.Generic;
 using static FusionLibrary.FusionEnums;
@@ -15,7 +16,7 @@ namespace FusionLibrary
         public int WantedLevel { get; set; } = 0;
         public float PuddleLevel { get; set; } = 0f;
         public float RainLevel { get; set; } = -1f;
-        public DateTime CurrentDate { get; set; }
+        public GameClockDateTime CurrentDate { get; set; }
         public List<VehicleReplica> VehicleReplicas { get; set; }
 
         public bool TransitionWeather { get; set; } = false;
@@ -24,9 +25,9 @@ namespace FusionLibrary
 
         public bool Applied = false;
 
-        public double MomentDuration { get; set; } = 10;
+        public int MomentDuration { get; set; } = 10;
 
-        public MomentReplica(DateTime dateTime)
+        public MomentReplica(GameClockDateTime dateTime)
         {
             CurrentDate = dateTime;
             MomentReplicas.Add(this);
@@ -34,7 +35,7 @@ namespace FusionLibrary
 
         public MomentReplica()
         {
-            CurrentDate = FusionUtils.CurrentTime;
+            CurrentDate = GameClock.Now;
 
             Weather = World.Weather;
             RainLevel = World.RainLevel;
@@ -69,7 +70,7 @@ namespace FusionLibrary
 
         public bool IsNow()
         {
-            if (CurrentDate.Between(FusionUtils.CurrentTime.AddMinutes(-MomentDuration), FusionUtils.CurrentTime.AddMinutes(MomentDuration)))
+            if (CurrentDate.Between(GameClock.Now - GameClockDuration.FromSeconds(MomentDuration), GameClock.Now + GameClockDuration.FromSeconds(MomentDuration)))
             {
                 return true;
             }

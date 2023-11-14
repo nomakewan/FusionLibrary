@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GTA.Chrono;
+using System;
 
 namespace FusionLibrary
 {
@@ -175,7 +176,7 @@ namespace FusionLibrary
         }
 
         /// <summary>
-        /// Input types for <see cref="FusionUtils.ParseFromRawString(string, DateTime, out InputType)"/>.
+        /// Input types for <see cref="FusionUtils.ParseFromRawString(string, GameClockDateTime, out InputType)"/>.
         /// </summary>
         public enum InputType
         {

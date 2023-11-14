@@ -1,4 +1,5 @@
 ﻿using GTA;
+using GTA.Chrono;
 using GTA.Math;
 using System;
 using System.Collections.Generic;
@@ -248,29 +249,29 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Checks if a <see cref="DateTime"/> is between <paramref name="start"/> and <paramref name="end"/> values.
+        /// Checks if a <see cref="GameClockDateTime"/> is between <paramref name="start"/> and <paramref name="end"/> values.
         /// </summary>
-        /// <param name="src">Evalueted <see cref="DateTime"/>.</param>
+        /// <param name="src">Evaluated <see cref="GameClockDateTime"/>.</param>
         /// <param name="start">Start of range.</param>
         /// <param name="end">End of range.</param>
         /// <returns><see langword="true"/> if <paramref name="src"/> is between; otherwise <see langword="false"/>.</returns>
-        public static bool Between(this DateTime src, DateTime start, DateTime end)
+        public static bool Between(this GameClockDateTime src, GameClockDateTime start, GameClockDateTime end)
         {
             return src >= start && src <= end;
         }
 
         /// <summary>
-        /// Checks if a <see cref="DateTime"/> is between <paramref name="start"/> and <paramref name="end"/> values. It evaluates only the time expressed in 12 hour format.
+        /// Checks if a <see cref="GameClockDateTime"/> is between <paramref name="start"/> and <paramref name="end"/> values. It evaluates only the time expressed in 12 hour format.
         /// </summary>
-        /// <param name="src">Evalueted <see cref="DateTime"/>.</param>
+        /// <param name="src">Evaluated <see cref="GameClockDateTime"/>.</param>
         /// <param name="start">Start of range.</param>
         /// <param name="end">End of range.</param>
         /// <returns><see langword="true"/> if <paramref name="src"/> is between; otherwise <see langword="false"/>.</returns>
-        public static bool BetweenHours(this DateTime src, DateTime start, DateTime end)
+        public static bool BetweenHours(this GameClockDateTime src, GameClockDateTime start, GameClockDateTime end)
         {
-            int hour = int.Parse(src.ToString("hh"));
-            int hourStart = int.Parse(start.ToString("hh"));
-            int hourEnd = int.Parse(end.ToString("hh"));
+            int hour = src.Hour12.hour;
+            int hourStart = start.Hour12.hour;
+            int hourEnd = end.Hour12.hour;
 
             return hour >= hourStart && hour <= hourEnd && src.Minute >= start.Minute && src.Minute <= end.Minute && src.Second >= start.Second && src.Second <= end.Second;
         }

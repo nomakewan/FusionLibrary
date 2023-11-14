@@ -1,4 +1,5 @@
 ﻿using GTA;
+using GTA.Chrono;
 using GTA.Math;
 using System;
 using static FusionLibrary.FusionEnums;
@@ -179,11 +180,11 @@ namespace FusionLibrary
             return ret;
         }
 
-        public unsafe bool SetDateTime(string propertyName, DateTime value)
+        public unsafe bool SetDateTime(string propertyName, GameClockDateTime value)
         {
             bool ret = false;
 
-            long ticks = value.Ticks;
+            long ticks = (value - GameClockDateTime.MinValue).WholeSeconds;
 
             ulong ticksBytes = *(ulong*)&ticks;
             uint ticksLow = (uint)ticksBytes & 0xFFFFFFFF;
@@ -198,7 +199,7 @@ namespace FusionLibrary
             return ret;
         }
 
-        public unsafe DateTime GetDateTime(string propertyName)
+        public unsafe GameClockDateTime GetDateTime(string propertyName)
         {
             int ticksLowSigned = GetInt(propertyName + "_LOW");
             int ticksHighSigned = GetInt(propertyName + "_HIGH");
@@ -210,7 +211,9 @@ namespace FusionLibrary
 
             long ticks = *(long*)&ticksBytes;
 
-            return new DateTime(ticks);
+            GameClockDateTime.MinValue.TryAdd(GameClockDuration.FromSeconds(ticks), out GameClockDateTime output);
+
+            return output;
         }
 
         public static bool IsRegistered(string propertyName, DecorType decorType)
