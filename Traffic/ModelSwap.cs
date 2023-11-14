@@ -54,8 +54,8 @@ namespace FusionLibrary
         public VehicleType VehicleType { get; set; }
         public VehicleClass VehicleClass { get; set; }
         public bool DateBased { get; set; }
-        public GameClockDateTime StartProductionDate { get; set; }
-        public GameClockDateTime EndProductionDate { get; set; }
+        public DateTime StartProductionDate { get; set; }
+        public DateTime EndProductionDate { get; set; }
         public int WaitBetweenSpawns { get; set; } = -1;
         public float ChanceOfSpawn { get; set; } = 1;
         public int MaxSpawned { get; set; } = 1;
@@ -78,8 +78,8 @@ namespace FusionLibrary
             foreach (string model in ModelsToSwap)
                 swapModels.Add(new CustomModel(model));
 
-            endTime = EndProductionDate.AddMonths(120);
-            endSpan = (float)(endTime - EndProductionDate).TotalDays;
+            endTime = GameClockDateTime.FromSystemDateTime(EndProductionDate.AddMonths(120));
+            endSpan = (float)(endTime - GameClockDateTime.FromSystemDateTime(EndProductionDate)).TotalDays;
 
             modelInit = true;
         }
@@ -89,12 +89,12 @@ namespace FusionLibrary
             if (!modelInit)
                 Init();
 
-            if (!Enabled || Game.GameTime < gameTime || (DateBased && GameClock.Now < StartProductionDate.AddMonths(4)) || FusionUtils.AllVehicles.Count(x => x.Model == baseModel) >= MaxInWorld)
+            if (!Enabled || Game.GameTime < gameTime || DateBased && GameClock.Now < GameClockDateTime.FromSystemDateTime(StartProductionDate.AddMonths(4)) || FusionUtils.AllVehicles.Count(x => x.Model == baseModel) >= MaxInWorld)
                 return;
 
             float chanceMulti = 1f;
 
-            if (DateBased && GameClock.Now.Between(EndProductionDate, endTime))
+            if (DateBased && GameClock.Now.Between(GameClockDateTime.FromSystemDateTime(EndProductionDate), endTime))
             {
                 chanceMulti = (float)(endTime - GameClock.Now).TotalDays;
                 chanceMulti = chanceMulti.Remap(0f, endSpan, 1f, 0f);
