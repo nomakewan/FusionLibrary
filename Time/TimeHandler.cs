@@ -36,7 +36,7 @@ namespace FusionLibrary
 
                 realTime = value;
                 realSecond = Game.GameTime + 1000;
-                World.IsClockPaused = value;
+                GameClock.IsPaused = value;
             }
         }
         private static bool realTime;
@@ -51,7 +51,7 @@ namespace FusionLibrary
         {
             if (realTime)
             {
-                World.IsClockPaused = true;
+                GameClock.IsPaused = true;
 
                 if (Game.GameTime >= realSecond)
                 {
