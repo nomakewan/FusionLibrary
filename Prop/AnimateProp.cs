@@ -603,7 +603,7 @@ namespace FusionLibrary
                 return;
             }
 
-            if (!Entity.NotNullAndExists() | !Prop.NotNullAndExists())
+            if (!Entity.NotNullAndExists() || !Prop.NotNullAndExists())
             {
                 Delete();
                 return;

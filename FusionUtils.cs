@@ -169,7 +169,7 @@ namespace FusionLibrary
             if (state)
                 Function.Call(Hash.SET_ALL_VEHICLE_GENERATORS_ACTIVE);
             else
-                Function.Call(Hash.SET_ALL_VEHICLE_GENERATORS_ACTIVE_IN_AREA, -10000.0f, -10000.0f, -1000.0f, 10000.0f, 10000.0f, 1000.0f, 0, 1);
+                Function.Call(Hash.SET_ALL_VEHICLE_GENERATORS_ACTIVE_IN_AREA, -10000.0f, -10000.0f, -1000.0f, 10000.0f, 10000.0f, 1000.0f, false, false);
 
             Function.Call(Hash.SET_DISTANT_CARS_ENABLED, state);
             Function.Call(Hash.DISABLE_VEHICLE_DISTANTLIGHTS, !state);
