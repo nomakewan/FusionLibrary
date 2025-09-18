@@ -1,5 +1,4 @@
-﻿using FusionLibrary.Extensions;
-using GTA;
+﻿using GTA;
 using GTA.Math;
 using System;
 
@@ -48,7 +47,7 @@ namespace FusionLibrary
         {
             if (_loadScene)
             {
-                _position.LoadScene();
+                Streaming.StartNewFrustumLoadScene(_position, Vector3.Zero, 20f);
 
                 _loadScene = false;
             }
@@ -61,7 +60,7 @@ namespace FusionLibrary
 
                 if (_loadSceneAfter)
                 {
-                    _waypointPos.LoadScene();
+                    Streaming.StartNewFrustumLoadScene(_waypointPos, Vector3.Zero, 20f);
 
                     _loadSceneAfter = false;
                 }

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using static FusionLibrary.FusionEnums;
-#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace FusionLibrary.Extensions
 {
@@ -33,23 +32,13 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Returns the <see cref="Vector3"/>'s relative velocity of the given <paramref name="entity"/>.
-        /// </summary>
-        /// <param name="entity">Instance of an <see cref="Entity"/>.</param>
-        /// <returns><see cref="Vector3"/>'s relative velocity of <paramref name="entity"/></returns>
-        public static Vector3 RelativeVelocity(this Entity entity)
-        {
-            return Function.Call<Vector3>(Hash.GET_ENTITY_SPEED_VECTOR, entity, true);
-        }
-
-        /// <summary>
         /// Gets the <paramref name="entity"/> running direction.
         /// </summary>
         /// <param name="entity">Instance of an <see cref="Entity"/>.</param>
         /// <returns><see cref="FusionEnums.RunningDirection"/></returns>
         public static RunningDirection RunningDirection(this Entity entity)
         {
-            float vel = entity.RelativeVelocity().Y;
+            float vel = entity.GetSpeedVector(true).Y;
 
             if (vel > 0)
             {
@@ -161,7 +150,7 @@ namespace FusionLibrary.Extensions
         /// <returns><see cref="AlphaLevel"/> of <paramref name="entity"/></returns>
         public static AlphaLevel GetAlpha(this Entity entity)
         {
-            int value = Function.Call<int>(Hash.GET_ENTITY_ALPHA, entity);
+            int value = entity.Opacity;
 
             if (value < (int)AlphaLevel.L1)
             {
@@ -198,7 +187,7 @@ namespace FusionLibrary.Extensions
         /// <param name="level">Desired <see cref="AlphaLevel"/>.</param>
         public static void SetAlpha(this Entity entity, AlphaLevel level)
         {
-            Function.Call(Hash.SET_ENTITY_ALPHA, entity, (int)level);
+            entity.Opacity = (int)level;
         }
 
         public static AlphaLevel DecreaseAlpha(this Entity entity)
@@ -236,7 +225,8 @@ namespace FusionLibrary.Extensions
         /// <returns><see langword="true"/> if <paramref name="entity"/> is not obscured overhead; otherwise <see langword="false"/>.</returns>
         public static bool IsOutInTheOpen(this Entity entity)
         {
-            if (entity.Position.Z + entity.HeightAboveGround < World.GetGroundHeight(new Vector2(entity.Position.X, entity.Position.Y)))
+            World.GetGroundHeight(new Vector3(entity.Position.X, entity.Position.Y, 2400f), out float groundHeight);
+            if (entity.Position.Z + entity.HeightAboveGround < groundHeight)
             {
                 return false;
             }
@@ -304,26 +294,6 @@ namespace FusionLibrary.Extensions
         public static Vehicle GetClosestVehicle(this Ped ped, float radius = 5f)
         {
             return World.GetClosestVehicle(ped.Position, radius);
-        }
-
-        /// <summary>
-        /// Returns the <see cref="Vehicle"/> that the <paramref name="ped"/> is currently entering.
-        /// </summary>
-        /// <param name="ped">Instance of a <see cref="Ped"/>.</param>
-        /// <returns>Instance of the <see cref="Vehicle"/>.</returns>
-        public static Vehicle GetEnteringVehicle(this Ped ped)
-        {
-            return Function.Call<Vehicle>(Hash.GET_VEHICLE_PED_IS_ENTERING, ped);
-        }
-
-        /// <summary>
-        /// Returns the <see cref="Vehicle"/> that the <paramref name="ped"/> is currently using.
-        /// </summary>
-        /// <param name="ped">Instance of a <see cref="Ped"/>.</param>
-        /// <returns>Instance of the <see cref="Vehicle"/>.</returns>
-        public static Vehicle GetUsingVehicle(this Ped ped)
-        {
-            return Function.Call<Vehicle>(Hash.GET_VEHICLE_PED_IS_USING, ped);
         }
 
         /// <summary>
@@ -437,10 +407,8 @@ namespace FusionLibrary.Extensions
 
             newVehicle.PlaceOnGround();
 
-            //newVehicle.AddBlip();
-
             if (newVehicle.Driver.NotNullAndExists())
-                newVehicle.Driver?.Task?.CruiseWithVehicle(newVehicle, 30);
+                newVehicle.Driver?.Task?.CruiseWithVehicle(newVehicle, 30, VehicleDrivingFlags.None);
 
             foreach (Ped ped in newVehicle.Occupants)
                 ped?.MarkAsNoLongerNeeded();
@@ -451,39 +419,7 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Sets wheel with <paramref name="id"/> of <paramref name="vehicle"/> at given <paramref name="height"/>.
-        /// </summary>
-        /// <param name="vehicle"><see cref="Vehicle"/> owner of the wheel.</param>
-        /// <param name="id"><see cref="VehicleWheelBoneId"/> of the wheel.</param>
-        /// <param name="height">Height of the wheel.</param>
-        public static void LiftUpWheel(this Vehicle vehicle, VehicleWheelBoneId id, float height)
-        {
-            Function.Call(Hash.SET_HYDRAULIC_SUSPENSION_RAISE_FACTOR, vehicle, vehicle.Wheels[id].Index, height);
-        }
-
-        /// <summary>
-        /// Sets <paramref name="vehicleWheel"/> at given <paramref name="height"/>.
-        /// </summary>        
-        /// <param name="vehicleWheel">Instance of a <see cref="VehicleWheel"/>.</param>
-        /// <param name="height">Height of the wheel.</param>
-        public static void LiftUpWheel(this VehicleWheel vehicleWheel, float height)
-        {
-            Function.Call(Hash.SET_HYDRAULIC_SUSPENSION_RAISE_FACTOR, vehicleWheel.Vehicle, vehicleWheel.Index, height);
-        }
-
-        /// <summary>
-        /// Attraches <paramref name="vehicle"/> to <paramref name="trailer"/>.
-        /// </summary>
-        /// <param name="vehicle">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="trailer">Instance of a trailer <see cref="Vehicle"/>.</param>
-        /// <param name="radius">Radius for the attach.</param>
-        public static void AttachToTrailer(this Vehicle vehicle, Vehicle trailer, float radius)
-        {
-            Function.Call(Hash.ATTACH_VEHICLE_TO_TRAILER, vehicle, trailer, radius);
-        }
-
-        /// <summary>
-        /// Gets the street's informations from <see cref="Vehicle"/>.
+        /// Gets the current street information from the position of a <see cref="Vehicle"/>.
         /// </summary>
         /// <param name="vehicle">Instance of a <see cref="Vehicle"/>.</param>
         /// <returns><see cref="Hash"/> of the street and crossing, and names of them.</returns>
@@ -500,44 +436,6 @@ namespace FusionLibrary.Extensions
             string streetName = World.GetStreetName(vehicle.Position, out string crossName);
 
             return (street, streetName, cross, crossName);
-        }
-
-        /// <summary>
-        /// (DO NOT USE) Kept for legacy reasons. Use instead <see cref="EntityExtensions.GetStreetInfo(Vehicle)"/>.
-        /// </summary>
-        /// <param name="vehicle"></param>
-        /// <returns></returns>
-        [Obsolete]
-        public static Hash GetStreetHash(this Vehicle vehicle)
-        {
-            Hash street;
-            Hash cross;
-
-            unsafe
-            {
-                Function.Call(Hash.GET_STREET_NAME_AT_COORD, vehicle.Position.X, vehicle.Position.Y, vehicle.Position.Z, &street, &cross);
-            }
-
-            return street;
-        }
-
-        /// <summary>
-        /// (DO NOT USE) Kept for legacy reasons. Use instead <see cref="EntityExtensions.GetStreetInfo(Vehicle)"/>.
-        /// </summary>
-        /// <param name="vehicle"></param>
-        /// <returns></returns>
-        [Obsolete]
-        public static Hash GetCrossingHash(this Vehicle vehicle)
-        {
-            Hash street;
-            Hash cross;
-
-            unsafe
-            {
-                Function.Call(Hash.GET_STREET_NAME_AT_COORD, vehicle.Position.X, vehicle.Position.Y, vehicle.Position.Z, &street, &cross);
-            }
-
-            return cross;
         }
 
         /// <summary>
@@ -569,20 +467,6 @@ namespace FusionLibrary.Extensions
         public static TaskDrive TaskDrive(this Ped ped, Vehicle vehicle)
         {
             return new TaskDrive(ped, vehicle);
-        }
-
-        /// <summary>
-        /// Tasks <paramref name="ped"/> to go to <paramref name="position"/>.
-        /// </summary>
-        /// <param name="ped">Instance of a <see cref="Ped"/>.</param>
-        /// <param name="position">Destination of the task.</param>
-        /// <param name="speed">Speed.</param>
-        /// <param name="heading">End heading of the <paramref name="ped"/>.</param>
-        /// <param name="timeout">Timeout of the task. -1 is without timeout.</param>
-        /// <param name="distanceToSlide">Margin accepted for arrival at <paramref name="position"/>.</param>
-        public static void TaskGoStraightTo(this Ped ped, Vector3 position, float speed, float heading, int timeout = -1, float distanceToSlide = 0)
-        {
-            Function.Call(Hash.TASK_GO_STRAIGHT_TO_COORD, ped, position.X, position.Y, position.Z, speed, timeout, heading, distanceToSlide);
         }
 
         /// <summary>
@@ -626,71 +510,6 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Attaches <paramref name="entity1"/> to <paramref name="boneName"/> of <paramref name="toEntity"/>.
-        /// </summary>
-        /// <param name="entity1">Instance of an <see cref="Entity"/>.</param>
-        /// <param name="toEntity">Second instance of an <see cref="Entity"/>.</param>
-        /// <param name="boneName">Bone's name.</param>
-        /// <param name="offset">Offset of attach point.</param>
-        /// <param name="rotation">Rotation for attach.</param>
-        /// <param name="useFixedRot">If <see langword="false"/> it ignores <paramref name="toEntity"/> vector.</param>
-        public static void AttachTo(this Entity entity1, Entity toEntity, string boneName, Vector3 offset, Vector3 rotation, bool useFixedRot = true)
-        {
-            Function.Call(Hash.ATTACH_ENTITY_TO_ENTITY, entity1, toEntity, toEntity.Bones[boneName].Index, offset.X, offset.Y, offset.Z, rotation.X, rotation.Y, rotation.Z, false, false, true, false, 2, useFixedRot);
-        }
-
-        /// <summary>
-        /// Attaches <paramref name="entity1"/> to <paramref name="toEntity"/>.
-        /// </summary>
-        /// <param name="entity1">Instance of an <see cref="Entity"/>.</param>
-        /// <param name="toEntity">Second instance of an <see cref="Entity"/>.</param>
-        /// <param name="offset">Offset of attach point.</param>
-        /// <param name="rotation">Rotation for attach.</param>
-        /// <param name="useFixedRot">If <see langword="false"/> it ignores <paramref name="toEntity"/> vector.</param>
-        public static void AttachTo(this Entity entity1, Entity toEntity, Vector3 offset, Vector3 rotation, bool useFixedRot = true)
-        {
-            Function.Call(Hash.ATTACH_ENTITY_TO_ENTITY, entity1, toEntity, 0, offset.X, offset.Y, offset.Z, rotation.X, rotation.Y, rotation.Z, false, false, true, false, 2, useFixedRot);
-        }
-
-        /// <summary>
-        /// Attaches physically <paramref name="entity1"/> to <paramref name="toEntity"/>.
-        /// </summary>
-        /// <param name="entity1">Instance of an <see cref="Entity"/>.</param>
-        /// <param name="toEntity">Second instance of an <see cref="Entity"/>.</param>
-        /// <param name="offset">Offset of attach point.</param>
-        /// <param name="rotation">Rotation for attach.</param>
-        public static void AttachToPhysically(this Entity entity1, Entity toEntity, Vector3 offset, Vector3 rotation)
-        {
-            Function.Call(Hash.ATTACH_ENTITY_TO_ENTITY_PHYSICALLY, entity1, toEntity, 0, 0, offset.X, offset.Y, offset.Z, 0, 0, 0, rotation.X, rotation.Y, rotation.Z, 1000000.0f, true, true, false, false, 2);
-        }
-
-        /// <summary>
-        /// Attaches physically <paramref name="entity1"/> to <paramref name="boneIndex"/> of <paramref name="toEntity"/>.
-        /// </summary>
-        /// <param name="entity1">Instance of an <see cref="Entity"/>.</param>
-        /// <param name="toEntity">Second instance of an <see cref="Entity"/>.</param>
-        /// <param name="boneIndex">Bone index of <paramref name="toEntity"/>.</param>
-        /// <param name="offset">Offset of attach point.</param>
-        /// <param name="rotation">Rotation for attach.</param>
-        public static void AttachToPhysically(this Entity entity1, Entity toEntity, int boneIndex, Vector3 offset, Vector3 rotation)
-        {
-            Function.Call(Hash.ATTACH_ENTITY_TO_ENTITY_PHYSICALLY, entity1, toEntity, boneIndex, 0, offset.X, offset.Y, offset.Z, 0, 0, 0, rotation.X, rotation.Y, rotation.Z, 1000000.0f, true, true, false, false, 2);
-        }
-
-        /// <summary>
-        /// Attaches physically <paramref name="entity1"/> to <paramref name="boneName"/> of <paramref name="toEntity"/>.
-        /// </summary>
-        /// <param name="entity1">Instance of an <see cref="Entity"/>.</param>
-        /// <param name="toEntity">Second instance of an <see cref="Entity"/>.</param>
-        /// <param name="boneName">Bone name of <paramref name="toEntity"/>.</param>
-        /// <param name="offset">Offset of attach point.</param>
-        /// <param name="rotation">Rotation for attach.</param>
-        public static void AttachToPhysically(this Entity entity1, Entity toEntity, string boneName, Vector3 offset, Vector3 rotation)
-        {
-            AttachToPhysically(entity1, toEntity, toEntity.Bones[boneName].Index, offset, rotation);
-        }
-
-        /// <summary>
         /// Checks if <paramref name="entity"/> is entirely inside the <paramref name="garage"/>.
         /// </summary>
         /// <param name="entity">Instance of an <see cref="Entity"/>.</param>
@@ -710,16 +529,6 @@ namespace FusionLibrary.Extensions
         public static bool IsPartiallyInGarage(this Entity entity, GarageDoor garage)
         {
             return Function.Call<bool>(Hash.IS_OBJECT_PARTIALLY_INSIDE_GARAGE, garage, entity, 0);
-        }
-
-        /// <summary>
-        /// Toggles reduced grip for <paramref name="vehicle"/>.
-        /// </summary>
-        /// <param name="vehicle">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="state">State of the toggle.</param>
-        public static void SetReduceGrip(this Vehicle vehicle, bool state)
-        {
-            Function.Call(Hash.SET_VEHICLE_REDUCE_GRIP, vehicle, state);
         }
 
         /// <summary>
@@ -751,7 +560,7 @@ namespace FusionLibrary.Extensions
         {
             position = vehicle.Position.TransferHeight(position);
 
-            position.RequestCollision();
+            Streaming.RequestCollisionAt(position);
             vehicle.Position = position;
         }
 
@@ -810,16 +619,6 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Sets lights brightness of <paramref name="vehicle"/>.
-        /// </summary>
-        /// <param name="vehicle">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="brightness">Value of brightness.</param>
-        public static void SetLightsBrightness(this Vehicle vehicle, float brightness)
-        {
-            Function.Call(Hash.SET_VEHICLE_LIGHT_MULTIPLIER, vehicle, brightness);
-        }
-
-        /// <summary>
         /// Checks if two vehicles are pointed in the same direction.
         /// </summary>
         /// <param name="veh">First instance of a <see cref="Vehicle"/>.</param>
@@ -873,27 +672,6 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Gets if headlights and high beams <paramref name="vehicle"/> are on or off.
-        /// </summary>
-        /// <param name="vehicle">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="lightsOn"></param>
-        /// <param name="highbeamsOn"></param>
-        public static void GetLightsState(this Vehicle vehicle, out bool lightsOn, out bool highbeamsOn)
-        {
-            bool _lightsOn;
-            bool _highbeamsOn;
-
-            unsafe
-            {
-                Function.Call(Hash.GET_VEHICLE_LIGHTS_STATE, vehicle, &_lightsOn, &_highbeamsOn);
-            }
-
-            lightsOn = _lightsOn;
-            highbeamsOn = _highbeamsOn;
-        }
-
-
-        /// <summary>
         /// Sets if <paramref name="vehicle"/> lights should appear as if player is inside.
         /// </summary>
         /// <param name="vehicle">Instance of a <see cref="Vehicle"/>.</param>
@@ -911,7 +689,7 @@ namespace FusionLibrary.Extensions
         /// <returns><see langword="true"/> if speed is almost zero; otherwise <see langword="false"/>.</returns>
         public static bool DecreaseSpeedAndWait(this Vehicle vehicle, float by = 20)
         {
-            Vector3 vel = vehicle.RelativeVelocity();
+            Vector3 vel = vehicle.GetSpeedVector(true);
 
             if (vel.Y >= -2 && vel.Y <= 2)
             {
@@ -921,66 +699,6 @@ namespace FusionLibrary.Extensions
             vehicle.Speed -= by * Game.LastFrameTime;
 
             return false;
-        }
-
-        /// <summary>
-        /// Sets <paramref name="train"/>'s cruise <paramref name="speed"/> value (m/s).
-        /// </summary>
-        /// <param name="train">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="speed">Cruise speed (m/s).</param>
-        public static void SetTrainCruiseSpeed(this Vehicle train, float speed)
-        {
-            if (!train.IsTrain)
-            {
-                return;
-            }
-
-            Function.Call(Hash.SET_TRAIN_CRUISE_SPEED, train, speed);
-        }
-
-        /// <summary>
-        /// Sets <paramref name="train"/>'s cruise <paramref name="speed"/> value (MPH).
-        /// </summary>
-        /// <param name="train">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="speed">Cruise speed (MPH).</param>
-        public static void SetTrainCruiseMPHSpeed(this Vehicle train, float speed)
-        {
-            if (!train.IsTrain)
-            {
-                return;
-            }
-
-            train.SetTrainCruiseSpeed(speed.ToMS());
-        }
-
-        /// <summary>
-        /// Sets <paramref name="train"/>'s <paramref name="speed"/> value (m/s).
-        /// </summary>
-        /// <param name="train">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="speed">Speed (m/s).</param>
-        public static void SetTrainSpeed(this Vehicle train, float speed)
-        {
-            if (!train.IsTrain)
-            {
-                return;
-            }
-
-            Function.Call(Hash.SET_TRAIN_SPEED, train, speed);
-        }
-
-        /// <summary>
-        /// Sets <paramref name="train"/>'s <paramref name="speed"/> value (MPH).
-        /// </summary>
-        /// <param name="train">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="speed">Speed (MPH).</param>
-        public static void SetTrainMPHSpeed(this Vehicle train, float speed)
-        {
-            if (!train.IsTrain)
-            {
-                return;
-            }
-
-            train.SetTrainSpeed(speed.ToMS());
         }
 
         /// <summary>

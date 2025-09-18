@@ -1,6 +1,6 @@
 ﻿using GTA;
+using GTA.Chrono;
 using GTA.Math;
-using GTA.Native;
 using System;
 using System.Collections.Generic;
 using static FusionLibrary.FusionEnums;
@@ -128,31 +128,13 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Requests ground collisions at <paramref name="position"/>.
-        /// </summary>
-        /// <param name="position">Position.</param>
-        public static void RequestCollision(this Vector3 position)
-        {
-            Function.Call(Hash.REQUEST_COLLISION_AT_COORD, position.X, position.Y, position.Z);
-        }
-
-        /// <summary>
-        /// Loads game's world at <paramref name="position"/>.
-        /// </summary>
-        /// <param name="position">Position.</param>
-        public static void LoadScene(this Vector3 position)
-        {
-            Function.Call(Hash.NEW_LOAD_SCENE_START, position.X, position.Y, position.Z, 0.0f, 0.0f, 0.0f, 20.0f, 0);
-        }
-
-        /// <summary>
         /// Sets the Z coordinate of <paramref name="position"/> to the ground height.
         /// </summary>
         /// <param name="position">Original position.</param>
         /// <returns>Position with Z set to ground height.</returns>
         public static Vector3 SetToGroundHeight(this Vector3 position)
         {
-            position.Z = World.GetGroundHeight(position);
+            World.GetGroundHeight(position, out position.Z);
 
             return position;
         }
@@ -165,7 +147,8 @@ namespace FusionLibrary.Extensions
         /// <returns><paramref name="dst"/> with Z axis offsetted of <paramref name="src"/> Z.</returns>
         public static Vector3 TransferHeight(this Vector3 src, Vector3 dst)
         {
-            dst.Z += src.Z - World.GetGroundHeight(src);
+            World.GetGroundHeight(src, out float temp);
+            dst.Z += src.Z - temp;
 
             return dst;
         }
@@ -183,59 +166,6 @@ namespace FusionLibrary.Extensions
 
             return ret;
         }
-
-        ///// <summary>
-        ///// Gets the most free direction given a <paramref name="position"/> in the world.
-        ///// </summary>
-        ///// <param name="position">World position.</param>
-        ///// <param name="ignoreEntity">An <see cref="Entity"/> to ignore.</param>
-        ///// <returns>Most free direction.</returns>
-        //public static float GetMostFreeDirection(this Vector3 position, Entity ignoreEntity)
-        //{
-        //    float ret = 0;
-        //    float maxDist = -1;
-        //    Vector3 lastPos = Vector3.Zero;
-
-        //    const float r = 1000f;
-
-        //    position = position.GetSingleOffset(Coordinate.Z, 1);
-
-        //    for (float i = 0; i <= 360; i += 15)
-        //    {
-        //        float angleRad = i * (float)Math.PI / 180;
-
-        //        float x = r * (float)Math.Cos(angleRad);
-        //        float y = r * (float)Math.Sin(angleRad);
-
-        //        Vector3 circlePos = position;
-        //        circlePos.X += y;
-        //        circlePos.Y += x;
-
-        //        // Then we check for every pos if it hits tracks material
-        //        RaycastResult raycast = World.Raycast(position, circlePos, IntersectFlags.Everything, ignoreEntity);
-
-        //        if (!raycast.DidHit)
-        //        {
-        //            ret = i;
-        //            lastPos = circlePos;
-        //            break;
-        //        }
-
-        //        float curDist = raycast.HitPosition.DistanceTo2D(position);
-
-        //        if (curDist > maxDist)
-        //        {
-        //            maxDist = curDist;
-        //            ret = i;
-        //            lastPos = circlePos;
-        //        }
-        //    }
-
-        //    //if (lastPos != Vector3.Zero)
-        //    //    CommonUtils.DrawLine(position, lastPos, Color.Aqua);
-
-        //    return ret;
-        //}
 
         /// <summary>
         /// Gets the corresponding positive angle of a positive one.
@@ -319,29 +249,29 @@ namespace FusionLibrary.Extensions
         }
 
         /// <summary>
-        /// Checks if a <see cref="DateTime"/> is between <paramref name="start"/> and <paramref name="end"/> values.
+        /// Checks if a <see cref="GameClockDateTime"/> is between <paramref name="start"/> and <paramref name="end"/> values.
         /// </summary>
-        /// <param name="src">Evalueted <see cref="DateTime"/>.</param>
+        /// <param name="src">Evaluated <see cref="GameClockDateTime"/>.</param>
         /// <param name="start">Start of range.</param>
         /// <param name="end">End of range.</param>
         /// <returns><see langword="true"/> if <paramref name="src"/> is between; otherwise <see langword="false"/>.</returns>
-        public static bool Between(this DateTime src, DateTime start, DateTime end)
+        public static bool Between(this GameClockDateTime src, GameClockDateTime start, GameClockDateTime end)
         {
             return src >= start && src <= end;
         }
 
         /// <summary>
-        /// Checks if a <see cref="DateTime"/> is between <paramref name="start"/> and <paramref name="end"/> values. It evaluates only the time expressed in 12 hour format.
+        /// Checks if a <see cref="GameClockDateTime"/> is between <paramref name="start"/> and <paramref name="end"/> values. It evaluates only the time expressed in 12 hour format.
         /// </summary>
-        /// <param name="src">Evalueted <see cref="DateTime"/>.</param>
+        /// <param name="src">Evaluated <see cref="GameClockDateTime"/>.</param>
         /// <param name="start">Start of range.</param>
         /// <param name="end">End of range.</param>
         /// <returns><see langword="true"/> if <paramref name="src"/> is between; otherwise <see langword="false"/>.</returns>
-        public static bool BetweenHours(this DateTime src, DateTime start, DateTime end)
+        public static bool BetweenHours(this GameClockDateTime src, GameClockDateTime start, GameClockDateTime end)
         {
-            int hour = int.Parse(src.ToString("hh"));
-            int hourStart = int.Parse(start.ToString("hh"));
-            int hourEnd = int.Parse(end.ToString("hh"));
+            int hour = src.Hour12.hour;
+            int hourStart = start.Hour12.hour;
+            int hourEnd = end.Hour12.hour;
 
             return hour >= hourStart && hour <= hourEnd && src.Minute >= start.Minute && src.Minute <= end.Minute && src.Second >= start.Second && src.Second <= end.Second;
         }

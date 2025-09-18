@@ -1,5 +1,6 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
+using GTA.Chrono;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -64,7 +65,7 @@ namespace FusionLibrary
 
         private int gameTime;
         private bool modelInit;
-        private DateTime endTime;
+        private GameClockDateTime endTime;
         private CustomModel baseModel;
         private readonly List<CustomModel> swapModels = new List<CustomModel>();
         private float endSpan;
@@ -77,8 +78,8 @@ namespace FusionLibrary
             foreach (string model in ModelsToSwap)
                 swapModels.Add(new CustomModel(model));
 
-            endTime = EndProductionDate.AddYears(10);
-            endSpan = (float)(endTime - EndProductionDate).TotalDays;
+            endTime = GameClockDateTime.FromSystemDateTime(EndProductionDate.AddMonths(120));
+            endSpan = (float)(endTime - GameClockDateTime.FromSystemDateTime(EndProductionDate)).TotalDays;
 
             modelInit = true;
         }
@@ -88,18 +89,18 @@ namespace FusionLibrary
             if (!modelInit)
                 Init();
 
-            if (!Enabled || Game.GameTime < gameTime || (DateBased && FusionUtils.CurrentTime < StartProductionDate.AddMonths(4)) || FusionUtils.AllVehicles.Count(x => x.Model == baseModel) >= MaxInWorld)
+            if (!Enabled || Game.GameTime < gameTime || DateBased && GameClock.Now < GameClockDateTime.FromSystemDateTime(StartProductionDate.AddMonths(4)) || FusionUtils.AllVehicles.Count(x => x.Model == baseModel) >= MaxInWorld)
                 return;
 
             float chanceMulti = 1f;
 
-            if (DateBased && FusionUtils.CurrentTime.Between(EndProductionDate, endTime))
+            if (DateBased && GameClock.Now.Between(GameClockDateTime.FromSystemDateTime(EndProductionDate), endTime))
             {
-                chanceMulti = (float)(endTime - FusionUtils.CurrentTime).TotalDays;
+                chanceMulti = (float)(endTime - GameClock.Now).TotalDays;
                 chanceMulti = chanceMulti.Remap(0f, endSpan, 1f, 0f);
                 chanceMulti = Math.Max(chanceMulti, 0.02f);
             }
-            else if (DateBased && FusionUtils.CurrentTime > endTime)
+            else if (DateBased && GameClock.Now > endTime)
             {
                 chanceMulti = 0.02f;
             }

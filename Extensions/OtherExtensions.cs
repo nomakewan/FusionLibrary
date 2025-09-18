@@ -1,6 +1,5 @@
 ﻿using GTA;
 using GTA.Math;
-using GTA.Native;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,26 +19,6 @@ namespace FusionLibrary.Extensions
         public static bool NotNullAndExists(this Camera camera)
         {
             return camera != null && camera.Exists();
-        }
-
-        /// <summary>
-        /// Attaches <paramref name="camera"/> to <paramref name="bone"/> of <paramref name="vehicle"/>.
-        /// </summary>
-        /// <param name="camera">Instance of a <see cref="Camera"/>.</param>
-        /// <param name="vehicle">Instance of a <see cref="Vehicle"/>.</param>
-        /// <param name="bone">Bone's name.</param>
-        /// <param name="offset">Offset relative to <paramref name="bone"/>.</param>
-        /// <param name="rotation">Rotation of the <see cref="Camera"/>.</param>
-        /// <param name="relativeRotation">Sets if rotation is relative to <paramref name="bone"/>.</param>
-        /// <param name="fixedDirection">Sets if direction is relative to <paramref name="vehicle"/>.</param>
-        public static void AttachToVehicle(this Camera camera, Vehicle vehicle, string bone, Vector3 offset, Vector3 rotation, bool relativeRotation = true, bool fixedDirection = true)
-        {
-            if (!camera.NotNullAndExists() || !vehicle.NotNullAndExists())
-            {
-                return;
-            }
-
-            Function.Call(Hash.ATTACH_CAM_TO_VEHICLE_BONE, camera, vehicle, vehicle.Bones[bone].Index, relativeRotation, rotation.X, rotation.Y, rotation.Z, offset.X, offset.Y, offset.Z, fixedDirection);
         }
 
         /// <summary>

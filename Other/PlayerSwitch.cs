@@ -95,7 +95,7 @@ namespace FusionLibrary
 
             if (!Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS))
             {
-                Function.Call(Hash.SET_ENTITY_HEALTH, FusionUtils.PlayerPed, _health);
+                FusionUtils.PlayerPed.Health = _health;
 
                 if (_ragdoll)
                 {

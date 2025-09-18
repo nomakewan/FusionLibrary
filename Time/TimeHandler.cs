@@ -1,5 +1,6 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
+using GTA.Chrono;
 using GTA.Native;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using static FusionLibrary.FusionEnums;
 
 namespace FusionLibrary
 {
-    public delegate void OnTimeChanged(DateTime time);
+    public delegate void OnTimeChanged(GameClockDateTime time);
     public delegate void OnDayNightChange();
 
     public class TimeHandler : Script
@@ -35,7 +36,7 @@ namespace FusionLibrary
 
                 realTime = value;
                 realSecond = Game.GameTime + 1000;
-                World.IsClockPaused = value;
+                GameClock.IsPaused = value;
             }
         }
         private static bool realTime;
@@ -50,11 +51,11 @@ namespace FusionLibrary
         {
             if (realTime)
             {
-                World.IsClockPaused = true;
+                GameClock.IsPaused = true;
 
                 if (Game.GameTime >= realSecond)
                 {
-                    Function.Call(Hash.ADD_TO_CLOCK_TIME, 0, 0, 1);
+                    GameClock.AddToCurrentTime(0, 0, 1);
                     realSecond = Game.GameTime + 1000;
                 }
             }
@@ -79,7 +80,7 @@ namespace FusionLibrary
                 FusionUtils.PlayerVehicle.Decorator().DrivenByPlayer = true;
             }
 
-            bool isNight = FusionUtils.CurrentTime.Hour >= 20 || (FusionUtils.CurrentTime.Hour >= 0 && FusionUtils.CurrentTime.Hour <= 5);
+            bool isNight = GameClock.Now.Hour >= 20 || (GameClock.Now.Hour >= 0 && GameClock.Now.Hour <= 5);
 
             if (isNight != IsNight)
             {
@@ -94,7 +95,7 @@ namespace FusionLibrary
 
             float vehDensity = 1;
 
-            float year = FusionUtils.CurrentTime.Year;
+            float year = GameClock.Now.Year;
 
             if (year > 1900 && year < 1950)
             {
@@ -121,9 +122,7 @@ namespace FusionLibrary
                 return;
             }
 
-            Function.Call(Hash.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, vehDensity);
-            Function.Call(Hash.SET_PARKED_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, vehDensity);
-            Function.Call(Hash.SET_RANDOM_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, vehDensity);
+            World.SetAmbientVehicleDensityMultiplierThisFrame(vehDensity);
         }
 
         public static void SetTimer(ScriptTimer scriptTimer, int value)
@@ -136,7 +135,7 @@ namespace FusionLibrary
             return Function.Call<int>(scriptTimer == ScriptTimer.A ? Hash.TIMERA : Hash.TIMERB);
         }
 
-        public static void TimeTravelTo(DateTime destinationTime)
+        public static void TimeTravelTo(GameClockDateTime destinationTime)
         {
             new MomentReplica();
 
@@ -144,7 +143,7 @@ namespace FusionLibrary
 
             UsedVehiclesByPlayer.Clear();
 
-            FusionUtils.CurrentTime = destinationTime;
+            GameClock.Now = destinationTime;
 
             MomentReplica.MomentReplicas?.ForEach(x =>
                 {

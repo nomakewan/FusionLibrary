@@ -247,7 +247,7 @@ namespace FusionLibrary
                 x.Abort();
             });
 
-            World.DestroyAllCameras();
+            Camera.DeleteAllCameras();
         }
 
         private void Tick()

@@ -1,7 +1,7 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
 using GTA.Math;
-using GTA.Native;
+using GTA.UI;
 using System.Collections.Generic;
 using static FusionLibrary.FusionEnums;
 
@@ -60,34 +60,35 @@ namespace FusionLibrary
 
         public void ShowLocation()
         {
-            Function.Call(Hash.NEW_LOAD_SCENE_START_SPHERE, Position.X, Position.Y, Position.Z, 100, 0);
+            Streaming.StartNewSphereLoadScene(Position, 100f);
 
             LocationCamera?.Delete();
 
             if (CameraPos != Vector3.Zero && CameraDir != Vector3.Zero)
             {
-                LocationCamera = World.CreateCamera(CameraPos, Vector3.Zero, 75);
+                LocationCamera = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, CameraPos, Vector3.Zero, 75f);
                 LocationCamera.Direction = CameraDir;
             }
             else
             {
-                LocationCamera = World.CreateCamera(Position.GetSingleOffset(Coordinate.Z, 10).GetSingleOffset(Coordinate.Y, 10), Vector3.Zero, 75);
+                LocationCamera = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, Position.GetSingleOffset(Coordinate.Z, 10).GetSingleOffset(Coordinate.Y, 10), Vector3.Zero, 75f);
                 LocationCamera.PointAt(Position);
             }
 
-            World.RenderingCamera = LocationCamera;
+            LocationCamera.IsActive = true;
+            ScriptCameraDirector.StartRendering();
 
-            Function.Call(Hash.LOCK_MINIMAP_POSITION, Position.X, Position.Y);
+            Hud.LockRadarPosition(Position);
         }
 
         public static void ResetCamera()
         {
             LocationCamera?.Delete();
 
-            Function.Call(Hash.UNLOCK_MINIMAP_POSITION);
+            Hud.UnlockRadarPosition();
 
-            World.DestroyAllCameras();
-            World.RenderingCamera = null;
+            Camera.DeleteAllCameras();
+            ScriptCameraDirector.StopRendering();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
-using GTA.Native;
+using GTA.Chrono;
 using System;
 using System.Collections.Generic;
 using static FusionLibrary.FusionEnums;
@@ -16,7 +16,7 @@ namespace FusionLibrary
         public int WantedLevel { get; set; } = 0;
         public float PuddleLevel { get; set; } = 0f;
         public float RainLevel { get; set; } = -1f;
-        public DateTime CurrentDate { get; set; }
+        public GameClockDateTime CurrentDate { get; set; }
         public List<VehicleReplica> VehicleReplicas { get; set; }
 
         public bool TransitionWeather { get; set; } = false;
@@ -27,7 +27,7 @@ namespace FusionLibrary
 
         public int MomentDuration { get; set; } = 10;
 
-        public MomentReplica(DateTime dateTime)
+        public MomentReplica(GameClockDateTime dateTime)
         {
             CurrentDate = dateTime;
             MomentReplicas.Add(this);
@@ -35,10 +35,10 @@ namespace FusionLibrary
 
         public MomentReplica()
         {
-            CurrentDate = FusionUtils.CurrentTime;
+            CurrentDate = GameClock.Now;
 
             Weather = World.Weather;
-            RainLevel = FusionUtils.RainLevel;
+            RainLevel = World.RainLevel;
             PuddleLevel = RainPuddleEditor.Level;
 
             WantedLevel = Game.Player.WantedLevel;
@@ -70,7 +70,7 @@ namespace FusionLibrary
 
         public bool IsNow()
         {
-            if (CurrentDate.Between(FusionUtils.CurrentTime.AddMinutes(-MomentDuration), FusionUtils.CurrentTime.AddMinutes(MomentDuration)))
+            if (CurrentDate.Between(GameClock.Now - GameClockDuration.FromSeconds(MomentDuration), GameClock.Now + GameClockDuration.FromSeconds(MomentDuration)))
             {
                 return true;
             }
@@ -81,7 +81,7 @@ namespace FusionLibrary
         public static void Randomize()
         {
             // Set the weather to a random weather
-            Function.Call(Hash.SET_RANDOM_WEATHER_TYPE);
+            World.SetRandomWeather();
 
             // Initial puddle level
             float puddleLevel = 0;
@@ -122,13 +122,13 @@ namespace FusionLibrary
                 {
                     World.TransitionToWeather(Weather, 2);
                     RainPuddleEditor.Level = PuddleLevel;
-                    FusionUtils.RainLevel = RainLevel;
+                    World.RainLevelOverride = RainLevel;
                 }
                 else
                 {
                     World.Weather = Weather;
                     RainPuddleEditor.Level = PuddleLevel;
-                    FusionUtils.RainLevel = RainLevel;
+                    World.RainLevelOverride = RainLevel;
                 }
 
                 if (ResetWanted)

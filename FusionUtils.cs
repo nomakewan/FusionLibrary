@@ -1,10 +1,10 @@
 ﻿using FusionLibrary.Extensions;
 using GTA;
+using GTA.Chrono;
 using GTA.Math;
 using GTA.Native;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -31,16 +31,6 @@ namespace FusionLibrary
         public static BinaryFormatter BinaryFormatter { get; } = new BinaryFormatter();
 
         private static int _padShakeStop;
-
-        /// <summary>
-        /// Gets or sets current <see cref="DateTime"/> of the game's world.
-        /// </summary>
-        public static DateTime CurrentTime
-        {
-            get => GetWorldTime();
-
-            set => SetWorldTime(value);
-        }
 
         /// <summary>
         /// Gets the <see cref="Ped"/> of the current <see cref="GTA.Player"/>.
@@ -82,7 +72,7 @@ namespace FusionLibrary
 
                 if (!value)
                 {
-                    Function.Call(Hash.DELETE_ALL_TRAINS);
+                    World.DeleteAllTrains();
                 }
 
                 randomTrains = value;
@@ -172,9 +162,9 @@ namespace FusionLibrary
             Function.Call(Hash.SET_GARBAGE_TRUCKS, state);
 
             if (state)
-                Function.Call(Hash.SET_ROADS_BACK_TO_ORIGINAL, -10000.0f, -10000.0f, -1000.0f, 10000.0f, 10000.0f, 1000.0f);
+                PathFind.SetVehicleNodesBackToOriginal(new Vector3(-10000.0f, -10000.0f, -1000.0f), new Vector3(10000.0f, 10000.0f, 1000.0f));
             else
-                Function.Call(Hash.SET_ROADS_IN_AREA, -10000.0f, -10000.0f, -1000.0f, 10000.0f, 10000.0f, 1000.0f, false, false);
+                PathFind.SwitchVehicleNodesInArea(new Vector3(-10000.0f, -10000.0f, -1000.0f), new Vector3(10000.0f, 10000.0f, 1000.0f), false);
 
             if (state)
                 Function.Call(Hash.SET_ALL_VEHICLE_GENERATORS_ACTIVE);
@@ -188,27 +178,13 @@ namespace FusionLibrary
         }
 
         /// <summary>
-        /// Given a <paramref name="position"/> returns the nearest roadside point.
-        /// </summary>
-        /// <param name="position">Instance of a <see cref="Vector3"/>.</param>
-        /// <returns>Nearest roadside point</returns>
-        public static Vector3 GetPointOnRoadSide(Vector3 position)
-        {
-            OutputArgument ret = new OutputArgument();
-
-            Function.Call(Hash.GET_POSITION_BY_SIDE_OF_ROAD, position.X, position.Y, position.Z, -1, ret);
-
-            return ret.GetResult<Vector3>();
-        }
-
-        /// <summary>
         /// Cleares game's world from every ped and vehicles. Except entities with <see cref="Decorator.DoNotDelete"/> == <see langword="true"/>.
         /// </summary>
         public static void ClearWorld()
         {
-            Function.Call(Hash.DELETE_ALL_TRAINS);
+            World.DeleteAllTrains();
 
-            Function.Call(Hash.CLEAR_AREA_OF_COPS, PlayerPed.Position.X, PlayerPed.Position.Y, PlayerPed.Position.Z, 1000f, 0);
+            World.ClearAreaOfCops(PlayerPed.Position, 1000f);
 
             Vehicle[] allVehicles = World.GetAllVehicles();
 
@@ -264,42 +240,6 @@ namespace FusionLibrary
             _padShakeStop = 0;
 
             Function.Call(Hash.STOP_CONTROL_SHAKE);
-        }
-
-        /// <summary>
-        /// Gets the current game's world <see cref="DateTime"/>.
-        /// </summary>
-        /// <returns></returns>
-        private static DateTime GetWorldTime()
-        {
-            try
-            {
-                int month = Function.Call<int>(Hash.GET_CLOCK_MONTH) + 1;
-                int year = Function.Call<int>(Hash.GET_CLOCK_YEAR);
-                int day = Function.Call<int>(Hash.GET_CLOCK_DAY_OF_MONTH);
-                int hour = Function.Call<int>(Hash.GET_CLOCK_HOURS);
-                int minute = Function.Call<int>(Hash.GET_CLOCK_MINUTES);
-                int second = Function.Call<int>(Hash.GET_CLOCK_SECONDS);
-
-                return new DateTime(year, month, day, hour, minute, second);
-            }
-            catch (Exception)
-            {
-                Function.Call(Hash.SET_CLOCK_DATE, 1985, 8, 21);
-                Function.Call(Hash.SET_CLOCK_TIME, 8, 0, 0);
-
-                return new DateTime(1985, 9, 21, 8, 0, 0);
-            }
-        }
-
-        /// <summary>
-        /// Sets the current game's world <see cref="DateTime"/>.
-        /// </summary>
-        /// <param name="time"></param>
-        private static void SetWorldTime(DateTime time)
-        {
-            Function.Call(Hash.SET_CLOCK_DATE, time.Day, time.Month - 1, time.Year);
-            Function.Call(Hash.SET_CLOCK_TIME, time.Hour, time.Minute, time.Second);
         }
 
         // https://code.google.com/archive/p/slimmath/
@@ -550,13 +490,13 @@ namespace FusionLibrary
         }
 
         /// <summary>
-        /// Parses a <paramref name="raw"/> string trying to retrieve a correct <see cref="DateTime"/> representation.
+        /// Parses a <paramref name="raw"/> string trying to retrieve a correct <see cref="GameClockDateTime"/> representation.
         /// </summary>
         /// <param name="raw">Raw string</param>
-        /// <param name="currentTime">Original <see cref="DateTime"/>.</param>
+        /// <param name="currentTime">Original <see cref="GameClockDateTime"/>.</param>
         /// <param name="inputType">Returns the <see cref="InputType"/>.</param>
-        /// <returns><see cref="DateTime"/> value; otherwise <c>null</c>.</returns>
-        public static DateTime? ParseFromRawString(string raw, DateTime currentTime, out InputType inputType)
+        /// <returns><see cref="GameClockDateTime"/> value; otherwise <c>null</c>.</returns>
+        public static GameClockDateTime? ParseFromRawString(string raw, GameClockDateTime currentTime, out InputType inputType)
         {
             try
             {
@@ -570,7 +510,7 @@ namespace FusionLibrary
 
                     inputType = InputType.Full;
 
-                    return new DateTime(int.Parse(year), int.Parse(month), int.Parse(day), int.Parse(hour), int.Parse(minute), 0);
+                    return new GameClockDateTime(GameClockDate.FromYmd(int.Parse(year), int.Parse(month), int.Parse(day)), GameClockTime.FromHms(int.Parse(hour), int.Parse(minute), 0));
                 }
                 else if (raw.Length == 8)
                 {
@@ -580,7 +520,7 @@ namespace FusionLibrary
 
                     inputType = InputType.Date;
 
-                    return new DateTime(int.Parse(year), int.Parse(month), int.Parse(day), currentTime.Hour, currentTime.Minute, 0);
+                    return new GameClockDateTime(GameClockDate.FromYmd(int.Parse(year), int.Parse(month), int.Parse(day)), GameClockTime.FromHms(currentTime.Hour, currentTime.Minute, 0));
                 }
                 else if (raw.Length == 4)
                 {
@@ -589,7 +529,7 @@ namespace FusionLibrary
 
                     inputType = InputType.Time;
 
-                    return new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, int.Parse(hour), int.Parse(minute), 0);
+                    return new GameClockDateTime(GameClockDate.FromYmd(currentTime.Year, currentTime.Month, currentTime.Day), GameClockTime.FromHms(int.Parse(hour), int.Parse(minute), 0));
                 }
 
                 inputType = InputType.Error;
@@ -604,6 +544,88 @@ namespace FusionLibrary
         }
 
         /// <summary>
+        /// Parses the <paramref name="input"/> <see cref="GameClockDateTime"/> to convert it into its raw string representation.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockDateTime"/> to convert.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string ParseToRawString(GameClockDateTime input)
+        {
+            return input.Month.ToString("D2") + input.Day.ToString("D2") + input.Year.ToString("D4") + input.Hour.ToString("D2") + input.Minute.ToString("D2");
+        }
+
+        /// <summary>
+        /// Converts a <see cref="GameClockTime"/> into "hh:mm:ss" or "HH:mm:ss" format.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockTime"/> to convert.</param>
+        /// <param name="is12Hour">If <see langword="true"/> the output will be in hh:mm:ss format. Otherwise, it will be in HH:mm:ss format.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string GameClockTimeToString(GameClockTime input, bool is12Hour = true)
+        {
+            if (is12Hour)
+                return input.Hour12.hour.ToString("D2") + ":" + input.Minute.ToString("D2") + ":" + input.Second.ToString("D2");
+            else
+                return input.Hour.ToString("D2") + ":" + input.Minute.ToString("D2") + ":" + input.Second.ToString("D2");
+        }
+
+        /// <summary>
+        /// Converts a <see cref="GameClockTime"/> into "h:mm tt" format.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockTime"/> to convert.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string GameClockTimeToHmt(GameClockTime input)
+        {
+            return input.Hour12.hour.ToString() + ":" + input.Minute.ToString("D2") + (input.Hour12.isPM ? " PM" : " AM");
+        }
+
+        /// <summary>
+        /// Converts a <see cref="GameClockDate"/> into "MMMM d, yyyy" format.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockDate"/> to convert.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string GameClockDateToMdy(GameClockDate input)
+        {
+            switch (input.Month)
+            {
+                case 1:
+                default:
+                    return "January " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 2:
+                    return "February " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 3:
+                    return "March " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 4:
+                    return "April " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 5:
+                    return "May " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 6:
+                    return "June " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 7:
+                    return "July " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 8:
+                    return "August " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 9:
+                    return "September " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 10:
+                    return "October " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 11:
+                    return "November " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+                case 12:
+                    return "December " + input.Day.ToString() + ", " + input.Year.ToString("D4");
+            }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="GameClockDateTime"/> into "MM/dd/yyyy hh:mm tt" format.
+        /// </summary>
+        /// <param name="input">The <see cref="GameClockDateTime"/> to convert.</param>
+        /// <returns><see cref="string"/> value.</returns>
+        public static string GameClockDateTimeToMdyhmt(GameClockDateTime input)
+        {
+            return input.Month.ToString("D2") + "/" + input.Day.ToString("D2") + "/" + input.Year.ToString("D4") + " " +
+                input.Hour12.hour.ToString("D2") + ":" + input.Minute.ToString("D2") + (input.Hour12.isPM ? " PM" : " AM");
+        }
+
+        /// <summary>
         /// Returns the 2D squared distance between <paramref name="entity1"/> and <paramref name="entity2"/>.
         /// </summary>
         /// <param name="entity1">Instance of an entity.</param>
@@ -612,36 +634,6 @@ namespace FusionLibrary
         public static float DistanceToSquared2D(Entity entity1, Entity entity2)
         {
             return entity1.Position.DistanceToSquared2D(entity2.Position);
-        }
-
-        /// <summary>
-        /// Draws a line.
-        /// </summary>
-        /// <param name="from">First point.</param>
-        /// <param name="to">Second point.</param>
-        /// <param name="color">Color of the line.</param>
-        public static void DrawLine(Vector3 from, Vector3 to, Color color)
-        {
-            Function.Call(Hash.DRAW_LINE, from.X, from.Y, from.Z, to.X, to.Y, to.Z, color.R, color.G, color.B, color.A);
-        }
-
-        /// <summary>
-        /// Gets the position on ground of the given <paramref name="position"/> with <paramref name="verticalOffset"/>.
-        /// </summary>
-        /// <param name="position">Point in the world.</param>
-        /// <param name="verticalOffset">Z offset.</param>
-        /// <returns>Point on ground.</returns>
-        public static Vector3 GetPositionOnGround(Vector3 position, float verticalOffset)
-        {
-            float result = -1;
-
-            unsafe
-            {
-                Function.Call(Hash.GET_GROUND_Z_FOR_3D_COORD, position.X, position.Y, position.Z, &result, false);
-            }
-            position.Z = result + verticalOffset;
-
-            return position;
         }
 
         /// <summary>
@@ -662,9 +654,9 @@ namespace FusionLibrary
                 for (int z = 0; z < 1000; z += 100)
                 {
                     position = new Vector3(position.X, position.Y, z);
-                    position.RequestCollision();
+                    Streaming.RequestCollisionAt(position);
                     Script.Yield();
-                    position.Z = World.GetGroundHeight(new Vector2(position.X, position.Y));
+                    World.GetGroundHeight(position, out position.Z);
                 }
             } while (position.Z == 0);
 
@@ -677,21 +669,7 @@ namespace FusionLibrary
         /// <returns><see langword="true"/> if FPV is enabled; otherwise <see langword="false"/>.</returns>
         public static bool IsCameraInFirstPerson()
         {
-            return Function.Call<bool>(Hash.IS_CINEMATIC_FIRST_PERSON_VEHICLE_INTERIOR_CAM_RENDERING) || Function.Call<bool>(Hash.IS_BONNET_CINEMATIC_CAM_RENDERING);
-        }
-
-        public static float RainLevel
-        {
-            get => Function.Call<float>(Hash.GET_RAIN_LEVEL);
-
-            set => Function.Call(Hash.SET_RAIN, value);
-        }
-
-        public static float WindSpeed
-        {
-            get => Function.Call<float>(Hash.GET_WIND_SPEED);
-
-            set => Function.Call(Hash.SET_WIND_SPEED, value);
+            return CinematicCameraDirector.IsRenderingPointOfViewCam || CinematicCameraDirector.IsRenderingMountedCam;
         }
 
         public static float Magnitude(Vector3 vector3)
@@ -707,7 +685,8 @@ namespace FusionLibrary
         /// <returns><see langword="true"/> wheel is on rail tracks; otherwise <see langword="false"/>.</returns>
         internal static bool IsWheelOnTracks(Vector3 pos, Vehicle vehicle)
         {
-            float diff = GetPositionOnGround(pos, -0.01f).Z - pos.Z;
+            World.GetGroundHeight(pos, out float temp);
+            float diff = temp - 0.01f - pos.Z;
             RaycastResult ret = World.Raycast(pos, pos.GetSingleOffset(Coordinate.Z, diff), IntersectFlags.Map, vehicle);
 
             // Tracks materials
@@ -723,7 +702,7 @@ namespace FusionLibrary
             return allowedSurfaces.Contains(ret.MaterialHash);
         }
 
-        public static DateTime RandomDate()
+        public static GameClockDateTime RandomDate()
         {
             Random rand = new Random();
 
@@ -734,7 +713,7 @@ namespace FusionLibrary
             int year = rand.Next(1, 9999);
             int day = rand.Next(1, DateTime.DaysInMonth(year, month));
 
-            return new DateTime(year, month, day, hour, minute, second);
+            return new GameClockDateTime(GameClockDate.FromYmd(year, month, day), GameClockTime.FromHms(hour, minute, second));
         }
 
         public static string RemoveIllegalFileNameChars(string input, string replacement = "")

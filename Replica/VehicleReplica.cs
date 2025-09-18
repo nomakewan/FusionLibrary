@@ -5,7 +5,6 @@ using GTA.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using static FusionLibrary.FusionEnums;
 
 namespace FusionLibrary
@@ -51,7 +50,9 @@ namespace FusionLibrary
         public VehicleReplica(Vehicle vehicle, SpawnFlags spawnFlags = SpawnFlags.Default) : base(vehicle)
         {
             EngineHealth = vehicle.EngineHealth;
+#pragma warning disable CS0618 // Type or member is obsolete
             EnginePowerMultiplier = vehicle.EnginePowerMultiplier;
+#pragma warning restore CS0618 // Type or member is obsolete
             EngineRunning = vehicle.IsEngineRunning;
             FuelLevel = vehicle.FuelLevel;
             HighGear = vehicle.HighGear;
@@ -166,7 +167,7 @@ namespace FusionLibrary
             vehicle.BrakePower = Brake;
             VehicleControl.SetHandbrake(vehicle, Handbrake);
             vehicle.SteeringAngle = SteeringAngle;
-            vehicle.AreLightsOn = Lights;
+            vehicle.SetScriptedLightSetting(Lights ? ScriptedVehicleLightSetting.SetVehicleLightsOn : ScriptedVehicleLightSetting.SetVehicleLightsOff);
             vehicle.AreHighBeamsOn = Headlights;
 
             vehicle.HealthFloat = Health;
